@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, MessageSquare, Brain, Settings, Terminal, Info, Cpu, Sparkles } from 'lucide-react';
+import { Home, MessageSquare, Brain, Settings, Terminal, Info, Cpu, Sparkles, Mic } from 'lucide-react';
 
 interface SidebarProps {
   selectedModel: string;
@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
   const navItems = [
     { id: 'home', path: '/', label: 'Home', icon: Home },
     { id: 'chat', path: '/chat', label: 'Chat', icon: MessageSquare },
+    { id: 'voice', path: '/voice', label: 'Voice Assistant', icon: Mic, badge: 'NEW' },
     { id: 'memory', path: '/memory', label: 'Memory', icon: Brain },
     { id: 'settings', path: '/settings', label: 'Settings', icon: Settings },
     { id: 'logs', path: '/logs', label: 'System Logs', icon: Terminal },
@@ -32,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
             <h1 className="font-bold text-lg tracking-wider text-white bg-gradient-to-r from-white via-indigo-200 to-cyan-400 bg-clip-text text-transparent">
               SAI OS
             </h1>
-            <p className="text-xs text-indigo-300/70 font-mono">v1.0.0 Phase 1</p>
+            <p className="text-xs text-indigo-300/70 font-mono">v2.0.0 Phase 2</p>
           </div>
         </div>
 
@@ -44,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
             return (
               <button
                 key={item.id}
+                id={`nav-${item.id}`}
                 onClick={() => navigate(item.path)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
@@ -52,7 +54,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
                 }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-300' : ''}`} />
-                <span>{item.label}</span>
+                <span className="flex-1 text-left">{item.label}</span>
+                {'badge' in item && item.badge && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
+                    {item.badge}
+                  </span>
+                )}
               </button>
             );
           })}

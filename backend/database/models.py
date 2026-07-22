@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from backend.database.connection import Base
@@ -66,3 +66,34 @@ class MemoryModel(Base):
     content = Column(Text, nullable=False)
     category = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+# ─── Phase 2: Voice AI Models ────────────────────────────────────────────────
+
+class VoiceSession(Base):
+    """Stores each completed voice conversation turn."""
+    __tablename__ = "voice_sessions"
+
+    id = Column(String, primary_key=True, index=True)  # UUID
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_transcript = Column(Text, nullable=False)
+    ai_response = Column(Text, nullable=True)
+    language = Column(String, default="en-US")
+    confidence = Column(Float, default=0.0)
+    duration_ms = Column(Integer, default=0)
+    model_used = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class VoiceSettings(Base):
+    """Per-user voice preferences."""
+    __tablename__ = "voice_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    voice_name = Column(String, default="en-US-AriaNeural")
+    language = Column(String, default="en-US")
+    speed = Column(Float, default=1.0)
+    pitch = Column(Float, default=1.0)
+    volume = Column(Float, default=1.0)
+    continuous_mode = Column(Boolean, default=False)
+    noise_reduction = Column(Boolean, default=True)
+    auto_detect_silence = Column(Boolean, default=True)

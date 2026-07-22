@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar';
 import { LoginModal } from './components/LoginModal';
 import { Home } from './pages/Home';
 import { Chat } from './pages/Chat';
+import { Voice } from './pages/Voice';
 import { Memory } from './pages/Memory';
 import { SettingsPage } from './pages/Settings';
 import { Logs } from './pages/Logs';
@@ -46,6 +47,7 @@ export function App() {
             <Routes>
               <Route path="/" element={<Home selectedModel={selectedModel} />} />
               <Route path="/chat" element={<Chat selectedModel={selectedModel} setSelectedModel={setSelectedModel} />} />
+              <Route path="/voice" element={<Voice selectedModel={selectedModel} />} />
               <Route path="/memory" element={<Memory />} />
               <Route path="/settings" element={<SettingsPage selectedModel={selectedModel} setSelectedModel={setSelectedModel} />} />
               <Route path="/logs" element={<Logs />} />

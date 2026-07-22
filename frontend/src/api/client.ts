@@ -101,4 +101,29 @@ export const api = {
     const res = await client.post('/settings', settings);
     return res.data;
   },
+  // ─── Phase 2: Voice API ───────────────────────────────────────────────────
+  getVoices: async () => {
+    const res = await client.get('/voice/voices');
+    return res.data;
+  },
+  getVoiceSettings: async () => {
+    const res = await client.get('/voice/settings');
+    return res.data;
+  },
+  updateVoiceSettings: async (settings: any) => {
+    const res = await client.post('/voice/settings', settings);
+    return res.data;
+  },
+  speak: async (payload: { text: string; voice?: string; speed?: number; pitch?: number }) => {
+    const res = await client.post('/voice/speak', payload);
+    return res.data;
+  },
+  getVoiceHistory: async () => {
+    const res = await client.get('/voice/history');
+    return res.data;
+  },
+  clearVoiceHistory: async () => {
+    const res = await client.delete('/voice/history');
+    return res.data;
+  },
 };

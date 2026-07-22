@@ -11,3 +11,5 @@ psutil
 chromadb
 psycopg2-binary
 aiofiles
+edge-tts
+websockets
