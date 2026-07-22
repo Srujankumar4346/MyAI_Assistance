@@ -40,6 +40,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.include_router(api_router)
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": f"Welcome to {settings.APP_NAME} Backend API. Visit /docs for documentation."}
+
 @app.on_event("startup")
 async def startup_event():
     logger.info(f"Started {settings.APP_NAME} v{settings.VERSION}")
