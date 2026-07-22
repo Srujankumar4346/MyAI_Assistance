@@ -1,6 +1,9 @@
+import os
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from backend.core.config import settings
 from backend.database.connection import engine, Base
 from backend.routers import router as api_router
@@ -40,13 +43,37 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.include_router(api_router)
 
-@app.get("/")
+@app.get("/api-status")
 def read_root():
     return {"status": "online", "message": f"Welcome to {settings.APP_NAME} Backend API. Visit /docs for documentation."}
 
 @app.on_event("startup")
 async def startup_event():
     logger.info(f"Started {settings.APP_NAME} v{settings.VERSION}")
+
+# Serve React frontend static files
+FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+
+if FRONTEND_DIST.exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="assets")
+
+    @app.get("/")
+    def serve_root():
+        return FileResponse(str(FRONTEND_DIST / "index.html"))
+
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str):
+        # Serve API docs normally
+        if full_path.startswith("docs") or full_path.startswith("openapi") or full_path.startswith("api"):
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        file_path = FRONTEND_DIST / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(FRONTEND_DIST / "index.html"))
+else:
+    @app.get("/")
+    def read_root():
+        return {"status": "online", "message": f"Welcome to {settings.APP_NAME} Backend API. Visit /docs for documentation."}
 
 if __name__ == "__main__":
     import uvicorn
