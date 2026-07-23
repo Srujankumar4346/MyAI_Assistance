@@ -2,16 +2,24 @@ services:
   - type: web
     name: myai-assistance
     runtime: python
-    buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build && cd ..
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
+      - key: NODE_VERSION
+        value: "20"
       - key: DATABASE_URL
-        sync: false
+        value: "sqlite:///./database/novax.db"
+      - key: OLLAMA_BASE_URL
+        value: "http://localhost:11434"
+      - key: DEFAULT_MODEL
+        value: "llama3.1:8b"
       - key: SECRET_KEY
         sync: false
       - key: ADMIN_USERNAME
-        sync: false
+        value: "SrujanKumar"
       - key: ADMIN_PASSWORD
         sync: false
