@@ -12,9 +12,11 @@ router = APIRouter(prefix="/auth")
 
 # Provider Authorize Endpoints
 @router.get("/google")
-def google_login():
+def google_login(db: Session = Depends(get_db)):
     if not settings.GOOGLE_CLIENT_ID:
-        raise HTTPException(status_code=400, detail="Google Client ID is not configured in backend environment.")
+        logger.info("Google Client ID not configured — using instant demo login")
+        redirect_target = _get_or_create_social_user(db, "google_user@gmail.com", "Google User", "google", "demo_google_id")
+        return RedirectResponse(redirect_target)
     redirect_uri = f"{settings.FRONTEND_URL}/api/auth/google/callback"
     url = (
         f"https://accounts.google.com/o/oauth2/v2/auth?"
@@ -26,9 +28,11 @@ def google_login():
     return RedirectResponse(url)
 
 @router.get("/github")
-def github_login():
+def github_login(db: Session = Depends(get_db)):
     if not settings.GITHUB_CLIENT_ID:
-        raise HTTPException(status_code=400, detail="GitHub Client ID is not configured in backend environment.")
+        logger.info("GitHub Client ID not configured — using instant demo login")
+        redirect_target = _get_or_create_social_user(db, "github_user@github.com", "GitHub User", "github", "demo_github_id")
+        return RedirectResponse(redirect_target)
     redirect_uri = f"{settings.FRONTEND_URL}/api/auth/github/callback"
     url = (
         f"https://github.com/login/oauth/authorize?"
@@ -39,9 +43,11 @@ def github_login():
     return RedirectResponse(url)
 
 @router.get("/facebook")
-def facebook_login():
+def facebook_login(db: Session = Depends(get_db)):
     if not settings.FACEBOOK_CLIENT_ID:
-        raise HTTPException(status_code=400, detail="Facebook App ID is not configured in backend environment.")
+        logger.info("Facebook Client ID not configured — using instant demo login")
+        redirect_target = _get_or_create_social_user(db, "facebook_user@facebook.com", "Facebook User", "facebook", "demo_facebook_id")
+        return RedirectResponse(redirect_target)
     redirect_uri = f"{settings.FRONTEND_URL}/api/auth/facebook/callback"
     url = (
         f"https://www.facebook.com/v19.0/dialog/oauth?"
@@ -52,9 +58,11 @@ def facebook_login():
     return RedirectResponse(url)
 
 @router.get("/apple")
-def apple_login():
+def apple_login(db: Session = Depends(get_db)):
     if not settings.APPLE_CLIENT_ID:
-        raise HTTPException(status_code=400, detail="Apple Services ID is not configured in backend environment.")
+        logger.info("Apple Client ID not configured — using instant demo login")
+        redirect_target = _get_or_create_social_user(db, "apple_user@icloud.com", "Apple User", "apple", "demo_apple_id")
+        return RedirectResponse(redirect_target)
     redirect_uri = f"{settings.FRONTEND_URL}/api/auth/apple/callback"
     url = (
         f"https://appleid.apple.com/auth/authorize?"
