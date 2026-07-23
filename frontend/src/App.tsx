@@ -16,6 +16,7 @@ import { About } from './pages/About';
 export function App() {
   const [user, setUser] = useState<User | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>('gemma');
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -30,10 +31,21 @@ export function App() {
 
   return (
     <Router>
-      <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
+      <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 relative">
+        {/* Backdrop for mobile sidebar */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-30 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
         {/* Sidebar Navigation */}
-        <Sidebar selectedModel={selectedModel} />
+        <div className={`fixed md:relative md:flex h-full z-40 transition-transform duration-300 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}>
+          <Sidebar selectedModel={selectedModel} onNavigate={() => setSidebarOpen(false)} />
+        </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -41,9 +53,10 @@ export function App() {
             user={user}
             onLogout={() => setUser(null)}
             title="NOVA_X Operating System"
+            onToggleSidebar={() => setSidebarOpen(prev => !prev)}
           />
 
-          <main className="flex-1 overflow-y-auto p-6 relative">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 relative">
             <Routes>
               <Route path="/" element={<Home selectedModel={selectedModel} />} />
               <Route path="/chat" element={<Chat selectedModel={selectedModel} setSelectedModel={setSelectedModel} />} />

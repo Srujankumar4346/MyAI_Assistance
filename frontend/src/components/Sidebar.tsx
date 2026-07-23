@@ -4,9 +4,10 @@ import { Home, MessageSquare, Brain, Settings, Terminal, Info, Cpu, Sparkles, Mi
 
 interface SidebarProps {
   selectedModel: string;
+  onNavigate?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, onNavigate }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -20,8 +21,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
     { id: 'about', path: '/about', label: 'About NOVA_X', icon: Info },
   ];
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
+
   return (
-    <aside className="w-64 h-screen glass-panel flex flex-col justify-between p-4 border-r border-indigo-500/20 z-20">
+    <aside className="w-64 h-screen glass-panel flex flex-col justify-between p-4 border-r border-indigo-500/20 z-20 bg-slate-950/95">
       <div>
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-3 py-4 mb-6 border-b border-white/10">
@@ -46,8 +54,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
               <button
                 key={item.id}
                 id={`nav-${item.id}`}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                onClick={() => handleNavigate(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-indigo-600/80 to-indigo-800/60 text-white shadow-lg shadow-indigo-500/30 border border-indigo-400/30 font-medium'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/50'

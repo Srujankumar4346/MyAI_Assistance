@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVoice } from '../hooks/useVoice';
+import { useVoice, getAudioInputDevices, getAudioOutputDevices, type AudioDevice } from '../hooks/useVoice';
 import { MicrophoneOrb } from '../components/voice/MicrophoneOrb';
 import { VoiceWaveform } from '../components/voice/VoiceWaveform';
 import { VoiceTranscript } from '../components/voice/VoiceTranscript';
@@ -75,6 +75,14 @@ interface VoiceSettingsPanelProps {
 }
 const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
   const [voices, setVoices] = useState<{ id: string; name: string }[]>([]);
+  const [micDevices, setMicDevices] = useState<AudioDevice[]>([]);
+  const [speakerDevices, setSpeakerDevices] = useState<AudioDevice[]>([]);
+  const [selectedMic, setSelectedMic] = useState<string>(
+    () => localStorage.getItem('novax_mic_id') || ''
+  );
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string>(
+    () => localStorage.getItem('novax_speaker_id') || ''
+  );
   const [settings, setSettings] = useState({
     voice_name: 'en-US-AriaNeural',
     language: 'en-US',
@@ -90,11 +98,18 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
   useEffect(() => {
     api.getVoiceSettings().then((s: typeof settings) => setSettings(s)).catch(() => {});
     api.getVoices().then((r: { voices: { id: string; name: string }[] }) => setVoices(r.voices)).catch(() => {});
+    getAudioInputDevices().then(setMicDevices).catch(() => {});
+    getAudioOutputDevices().then(setSpeakerDevices).catch(() => {});
   }, []);
 
   const save = async () => {
     setSaving(true);
-    try { await api.updateVoiceSettings(settings); } catch {}
+    try {
+      await api.updateVoiceSettings(settings);
+      localStorage.setItem('novax_mic_id', selectedMic);
+      localStorage.setItem('novax_speaker_id', selectedSpeaker);
+      localStorage.setItem('novax_noise_reduction', String(settings.noise_reduction));
+    } catch {}
     setSaving(false);
     onClose();
   };
@@ -128,12 +143,9 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
         {/* Language */}
         <div>
           <label className="text-xs font-mono text-slate-400 mb-1 block">Language</label>
-          <select
-            id="voice-language"
-            value={settings.language}
+          <select id="voice-language" value={settings.language}
             onChange={e => setSettings(s => ({ ...s, language: e.target.value }))}
-            className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
-          >
+            className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
             <option value="en-US">English (US)</option>
             <option value="en-GB">English (UK)</option>
             <option value="en-AU">English (AU)</option>
@@ -141,16 +153,40 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
           </select>
         </div>
 
+        {/* Microphone Selection */}
+        {micDevices.length > 0 && (
+          <div>
+            <label className="text-xs font-mono text-slate-400 mb-1 block">🎙 Microphone</label>
+            <select id="voice-mic-select" value={selectedMic}
+              onChange={e => setSelectedMic(e.target.value)}
+              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+              <option value="">Default Microphone</option>
+              {micDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* Speaker Selection */}
+        {speakerDevices.length > 0 && (
+          <div>
+            <label className="text-xs font-mono text-slate-400 mb-1 block">🔊 Speaker Output</label>
+            <select id="voice-speaker-select" value={selectedSpeaker}
+              onChange={e => setSelectedSpeaker(e.target.value)}
+              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+              <option value="">Default Speaker</option>
+              {speakerDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}
+            </select>
+          </div>
+        )}
+
         {/* Speed */}
         <div>
           <label className="text-xs font-mono text-slate-400 mb-1 flex justify-between">
             <span>Speed</span><span className="text-indigo-300">{settings.speed.toFixed(1)}x</span>
           </label>
-          <input type="range" min="0.5" max="2" step="0.1"
-            value={settings.speed}
+          <input type="range" min="0.5" max="2" step="0.1" value={settings.speed}
             onChange={e => setSettings(s => ({ ...s, speed: parseFloat(e.target.value) }))}
-            className="w-full accent-indigo-500"
-          />
+            className="w-full accent-indigo-500" />
         </div>
 
         {/* Pitch */}
@@ -158,11 +194,9 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
           <label className="text-xs font-mono text-slate-400 mb-1 flex justify-between">
             <span>Pitch</span><span className="text-indigo-300">{settings.pitch.toFixed(1)}x</span>
           </label>
-          <input type="range" min="0.5" max="2" step="0.1"
-            value={settings.pitch}
+          <input type="range" min="0.5" max="2" step="0.1" value={settings.pitch}
             onChange={e => setSettings(s => ({ ...s, pitch: parseFloat(e.target.value) }))}
-            className="w-full accent-indigo-500"
-          />
+            className="w-full accent-indigo-500" />
         </div>
 
         {/* Volume */}
@@ -170,17 +204,15 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
           <label className="text-xs font-mono text-slate-400 mb-1 flex justify-between">
             <span>Volume</span><span className="text-indigo-300">{Math.round(settings.volume * 100)}%</span>
           </label>
-          <input type="range" min="0" max="1" step="0.05"
-            value={settings.volume}
+          <input type="range" min="0" max="1" step="0.05" value={settings.volume}
             onChange={e => setSettings(s => ({ ...s, volume: parseFloat(e.target.value) }))}
-            className="w-full accent-indigo-500"
-          />
+            className="w-full accent-indigo-500" />
         </div>
 
         {/* Toggles */}
         {[
           { key: 'continuous_mode', label: 'Continuous Listening' },
-          { key: 'noise_reduction', label: 'Noise Reduction' },
+          { key: 'noise_reduction', label: 'Noise Reduction (Web Audio)' },
           { key: 'auto_detect_silence', label: 'Auto Detect Silence' },
         ].map(({ key, label }) => (
           <label key={key} className="flex items-center justify-between cursor-pointer">
@@ -216,13 +248,23 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
   const [voiceHistory, setVoiceHistory] = useState<any[]>([]);
 
+  // Read persisted device prefs from localStorage
+  const micId = localStorage.getItem('novax_mic_id') || undefined;
+  const speakerId = localStorage.getItem('novax_speaker_id') || undefined;
+  const noiseReduction = localStorage.getItem('novax_noise_reduction') !== 'false';
+
   const {
     voiceState, transcript, liveText, aiText,
-    confidence, latency, error, isConnected,
+    confidence, latency, error, isConnected, reconnectAttempt,
     startListening, stopListening, stopSpeaking,
     toggleContinuous, clearTranscript, isContinuous,
     setTranscript,
-  } = useVoice({ model: selectedModel });
+  } = useVoice({
+    model: selectedModel,
+    microphoneDeviceId: micId,
+    speakerDeviceId: speakerId,
+    noiseReduction,
+  });
 
   const stateLabels: Record<string, string> = {
     idle: 'STANDBY', listening: 'LISTENING', thinking: 'PROCESSING', speaking: 'RESPONDING', error: 'ERROR',
@@ -330,7 +372,11 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
             + New Voice Session
           </button>
 
-          {/* State badge */}
+          {!isConnected && reconnectAttempt > 0 && (
+            <span className="px-2 py-1 rounded-full text-xs font-mono text-amber-300 bg-amber-400/10 border border-amber-400/30 animate-pulse">
+              ↺ Reconnecting…
+            </span>
+          )}
           <div className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
             voiceState === 'listening' ? 'border-emerald-400/40 text-emerald-300 bg-emerald-400/10 animate-pulse' :
             voiceState === 'thinking'  ? 'border-amber-400/40  text-amber-300  bg-amber-400/10'  :
@@ -476,34 +522,36 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex-1 flex overflow-hidden"
+              className="flex-1 flex flex-col lg:flex-row overflow-hidden"
             >
               {/* Left Column - Minimized status/orb & mic controls */}
-              <div className="flex flex-col items-center justify-between w-80 shrink-0 px-6 py-8 border-r border-white/5 bg-slate-950/40">
-                <div className="grid grid-cols-2 gap-3 w-full text-center">
+              <div className="flex flex-col items-center justify-between w-full lg:w-80 shrink-0 px-6 py-6 lg:py-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-slate-950/40 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 w-full text-center">
                   {[
                     { label: 'Model', value: selectedModel || 'llama3.1:8b', color: 'text-indigo-300' },
                     { label: 'Status', value: isConnected ? 'Online' : 'Offline', color: isConnected ? 'text-emerald-400' : 'text-red-400' },
                     { label: 'Confidence', value: `${confidence}%`, color: 'text-amber-300' },
                     { label: 'Latency', value: latency ? `${latency}ms` : '—', color: 'text-cyan-300' },
                   ].map(({ label, value, color }) => (
-                    <div key={label} className="bg-slate-800/40 border border-white/5 rounded-xl p-2.5">
-                      <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">{label}</p>
-                      <p className={`text-sm font-bold font-mono ${color} truncate`}>{value}</p>
+                    <div key={label} className="bg-slate-800/40 border border-white/5 rounded-xl p-2 md:p-2.5">
+                      <p className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-wider">{label}</p>
+                      <p className={`text-xs md:text-sm font-bold font-mono ${color} truncate`}>{value}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Compact Minimized Orb & Waveform */}
-                <div className="flex flex-col items-center gap-6">
-                  <div className="scale-90 transition-transform">
+                <div className="flex flex-row lg:flex-col items-center gap-4 lg:gap-6 my-2">
+                  <div className="scale-75 lg:scale-90 transition-transform">
                     <MicrophoneOrb
                       state={voiceState}
                       onClick={handleOrbClick}
                       disabled={voiceState === 'thinking' || voiceState === 'speaking'}
                     />
                   </div>
-                  <VoiceWaveform state={voiceState} />
+                  <div className="w-32 lg:w-full">
+                    <VoiceWaveform state={voiceState} />
+                  </div>
                 </div>
 
                 {/* Minimized controls */}
@@ -519,7 +567,7 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
               </div>
 
               {/* Right Column - Persistent conversation log */}
-              <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/10 relative">
+              <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/10 relative min-h-[250px]">
                 <VoiceTranscript
                   entries={transcript}
                   liveText={liveText}
