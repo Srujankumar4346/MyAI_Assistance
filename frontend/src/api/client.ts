@@ -3,15 +3,15 @@ import axios from 'axios';
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || '/api';
 
 export function getAuthToken(): string | null {
-  return localStorage.getItem('sai_token');
+  return localStorage.getItem('novax_token');
 }
 
 export function setAuthToken(token: string) {
-  localStorage.setItem('sai_token', token);
+  localStorage.setItem('novax_token', token);
 }
 
 export function removeAuthToken() {
-  localStorage.removeItem('sai_token');
+  localStorage.removeItem('novax_token');
 }
 
 // Create Axios Instance

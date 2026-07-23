@@ -40,7 +40,7 @@ export function App() {
           <Navbar
             user={user}
             onLogout={() => setUser(null)}
-            title="SAI Operating System"
+            title="NOVA_X Operating System"
           />
 
           <main className="flex-1 overflow-y-auto p-6 relative">

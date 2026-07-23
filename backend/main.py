@@ -15,7 +15,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
-    description="Backend API for SAI (Srujan Artificial Intelligence)"
+    description="Backend API for NOVA_X (Neural Operating Virtual Assistance)"
 )
 
 from backend.middleware.logging_middleware import LoggingMiddleware
@@ -38,7 +38,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception on {request.url.path}: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"detail": "An internal server error occurred in SAI OS. Please check logs for details."}
+        content={"detail": "An internal server error occurred in NOVA_X OS. Please check logs for details."}
     )
 
 app.include_router(api_router)

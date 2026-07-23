@@ -17,7 +17,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
     { id: 'memory', path: '/memory', label: 'Memory', icon: Brain },
     { id: 'settings', path: '/settings', label: 'Settings', icon: Settings },
     { id: 'logs', path: '/logs', label: 'System Logs', icon: Terminal },
-    { id: 'about', path: '/about', label: 'About SAI', icon: Info },
+    { id: 'about', path: '/about', label: 'About NOVA_X', icon: Info },
   ];
 
   return (
@@ -31,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel }) => {
           </div>
           <div>
             <h1 className="font-bold text-lg tracking-wider text-white bg-gradient-to-r from-white via-indigo-200 to-cyan-400 bg-clip-text text-transparent">
-              SAI OS
+              NOVA_X OS
             </h1>
             <p className="text-xs text-indigo-300/70 font-mono">v2.0.0 Phase 2</p>
           </div>

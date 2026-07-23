@@ -6,7 +6,7 @@ from datetime import datetime
 LOGS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 
-log_filename = os.path.join(LOGS_DIR, f"sai_{datetime.now().strftime('%Y-%m-%d')}.log")
+log_filename = os.path.join(LOGS_DIR, f"novax_{datetime.now().strftime('%Y-%m-%d')}.log")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,4 +17,4 @@ logging.basicConfig(
     ]
 )
 
-logger = logging.getLogger("SAI")
+logger = logging.getLogger("NOVA_X")

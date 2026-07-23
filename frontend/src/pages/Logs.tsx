@@ -29,7 +29,7 @@ export const Logs: React.FC = () => {
       <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Terminal className="w-6 h-6 text-cyan-400" /> SAI Real-Time System Logs
+            <Terminal className="w-6 h-6 text-cyan-400" /> NOVA_X Real-Time System Logs
           </h2>
           <p className="text-xs text-slate-300 mt-1">Viewing log output from <code className="text-cyan-300 font-mono">{file || 'latest log'}</code></p>
         </div>

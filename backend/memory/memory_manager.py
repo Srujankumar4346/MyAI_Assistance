@@ -16,7 +16,7 @@ class MemoryManager:
             import chromadb
             self.client = chromadb.PersistentClient(path=self.chroma_dir)
             self.collection = self.client.get_or_create_collection(
-                name="sai_user_memory",
+                name="novax_user_memory",
                 metadata={"hnsw:space": "cosine"}
             )
             logger.info("ChromaDB memory store initialized successfully.")

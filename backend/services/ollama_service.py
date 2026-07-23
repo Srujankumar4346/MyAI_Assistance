@@ -41,12 +41,28 @@ class OllamaService:
             if matched:
                 model = matched
             else:
-                fallback_model = installed[0]
-                yield f"⚠️ Selected model '{model}' is not installed in Ollama. Falling back to '{fallback_model}'.\n\n"
+                # Prioritize general-purpose models (llama, qwen, gemma, mistral, phi) over specialized coder models
+                general_keywords = ["llama", "qwen", "gemma", "mistral", "phi"]
+                fallback_model = None
+                for keyword in general_keywords:
+                    for m in installed:
+                        if keyword in m.lower():
+                            fallback_model = m
+                            break
+                    if fallback_model:
+                        break
+                if not fallback_model:
+                    fallback_model = installed[0]
+                logger.info(f"Selected model '{model}' is not installed in Ollama. Falling back to '{fallback_model}'.")
                 model = fallback_model
 
-        # Inject long term memory if present
-        system_content = "You are SAI (Srujan Artificial Intelligence), an advanced personal AI operating system assistant."
+        # System prompt prioritizing fast, concise, direct answers
+        system_content = (
+            "You are NOVA_X, a fast personal voice AI assistant. "
+            "CRITICAL DIRECTIVE: Give VERY SHORT, direct, and concise answers (1 to 2 brief sentences maximum). "
+            "Do NOT give long paragraphs, lists, or unnecessary details unless explicitly requested. "
+            "Answer immediately and stay strictly to the point."
+        )
         if context_memories:
             system_content += f"\n\n[RETRIEVED USER MEMORIES & CONTEXT]:\n{context_memories}\nUse these details to personalize your responses."
 
@@ -55,7 +71,11 @@ class OllamaService:
         payload = {
             "model": model,
             "messages": formatted_messages,
-            "stream": True
+            "stream": True,
+            "options": {
+                "num_predict": 100,  # Limit max tokens for super fast generation
+                "temperature": 0.6,
+            }
         }
 
         try:
@@ -78,6 +98,6 @@ class OllamaService:
                                 continue
         except Exception as e:
             logger.error(f"Ollama streaming exception: {e}")
-            yield f"[SAI Offline Simulation Mode]: Ollama service connection failed. Details: {str(e)}. Please ensure 'ollama serve' is running locally with the requested model ('{model}')."
+            yield f"[NOVA_X Offline Simulation Mode]: Ollama service connection failed. Details: {str(e)}. Please ensure 'ollama serve' is running locally with the requested model ('{model}')."
 
 ollama_service = OllamaService()

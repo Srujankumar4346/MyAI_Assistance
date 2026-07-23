@@ -212,21 +212,82 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
 // ─── Main Voice Page ──────────────────────────────────────────────────────────
 export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
   const [showSettings, setShowSettings] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
+  const [hasStartedConversation, setHasStartedConversation] = useState(false);
+  const [voiceHistory, setVoiceHistory] = useState<any[]>([]);
 
   const {
     voiceState, transcript, liveText, aiText,
     confidence, latency, error, isConnected,
     startListening, stopListening, stopSpeaking,
     toggleContinuous, clearTranscript, isContinuous,
+    setTranscript,
   } = useVoice({ model: selectedModel });
 
   const stateLabels: Record<string, string> = {
     idle: 'STANDBY', listening: 'LISTENING', thinking: 'PROCESSING', speaking: 'RESPONDING', error: 'ERROR',
   };
 
+  // Fetch voice history sessions
+  const fetchHistory = async () => {
+    try {
+      const data = await api.getVoiceHistory();
+      setVoiceHistory(data || []);
+    } catch (e) {
+      console.error('Failed to load voice history', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [transcript.length]);
+
+  // Keep conversation view open once active or has transcript entries
+  useEffect(() => {
+    if (transcript.length > 0 || voiceState === 'listening' || voiceState === 'thinking' || voiceState === 'speaking') {
+      setHasStartedConversation(true);
+    }
+  }, [transcript.length, voiceState]);
+
   const handleOrbClick = () => {
     if (voiceState === 'listening') stopListening();
     else if (voiceState === 'idle' || voiceState === 'error') startListening();
+  };
+
+  const handleNewSession = () => {
+    if (voiceState === 'speaking') stopSpeaking();
+    if (voiceState === 'listening') stopListening();
+    clearTranscript();
+    setHasStartedConversation(false);
+  };
+
+  const handleSelectHistoryItem = (item: any) => {
+    setHasStartedConversation(true);
+    setTranscript([
+      {
+        id: `${item.id}-user`,
+        role: 'user',
+        text: item.user_transcript,
+        timestamp: new Date(item.created_at),
+        confidence: Math.round((item.confidence || 0.9) * 100),
+      },
+      {
+        id: `${item.id}-ai`,
+        role: 'assistant',
+        text: item.ai_response || '',
+        timestamp: new Date(item.created_at),
+      },
+    ]);
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await api.clearVoiceHistory();
+      setVoiceHistory([]);
+      handleNewSession();
+    } catch (e) {
+      console.error('Failed to clear voice history', e);
+    }
   };
 
   return (
@@ -241,19 +302,37 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
-        <div>
-          <h2 className="text-lg font-bold text-white tracking-wider">
-            SAI Voice Assistant
-          </h2>
-          <p className="text-xs font-mono text-indigo-400/70">
-            JARVIS-Style Real-Time AI
-          </p>
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-slate-950/60 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowHistory(h => !h)}
+            className="p-2 rounded-xl bg-slate-800/60 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-400/40 transition-all text-xs flex items-center gap-1.5"
+            title="Toggle Voice History Sidebar"
+          >
+            {showHistory ? '◀ Hide Recent' : '▶ Recent Voice Chats'}
+          </button>
+          <div>
+            <h2 className="text-lg font-bold text-white tracking-wider flex items-center gap-2">
+              NOVA_X Voice Assistant
+            </h2>
+            <p className="text-xs font-mono text-indigo-400/70">
+              Neural Operating Virtual Assistance Real-Time Voice
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-3">
+          {/* New Voice Chat Button */}
+          <button
+            onClick={handleNewSession}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-xl font-medium text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5"
+          >
+            + New Voice Session
+          </button>
+
           {/* State badge */}
           <div className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
-            voiceState === 'listening' ? 'border-emerald-400/40 text-emerald-300 bg-emerald-400/10' :
+            voiceState === 'listening' ? 'border-emerald-400/40 text-emerald-300 bg-emerald-400/10 animate-pulse' :
             voiceState === 'thinking'  ? 'border-amber-400/40  text-amber-300  bg-amber-400/10'  :
             voiceState === 'speaking'  ? 'border-blue-400/40   text-blue-300   bg-blue-400/10'   :
             voiceState === 'error'     ? 'border-red-400/40    text-red-300    bg-red-400/10'    :
@@ -261,67 +340,196 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
           }`}>
             ● {stateLabels[voiceState] || 'STANDBY'}
           </div>
+
           {/* Settings */}
           <button
             id="voice-settings-open"
             onClick={() => setShowSettings(s => !s)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/60 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-400/40 transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/60 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-400/40 transition-all cursor-pointer"
           >
             ⚙
           </button>
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Main content area */}
       <div className="relative z-10 flex flex-1 overflow-hidden">
-        {/* Left — Orb + waveform + controls */}
-        <div className="flex flex-col items-center justify-between w-80 shrink-0 px-6 py-8 border-r border-white/5">
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-3 w-full text-center">
-            {[
-              { label: 'Model', value: selectedModel || 'gemma', color: 'text-indigo-300' },
-              { label: 'Status', value: isConnected ? 'Online' : 'Offline', color: isConnected ? 'text-emerald-400' : 'text-red-400' },
-              { label: 'Confidence', value: `${confidence}%`, color: 'text-amber-300' },
-              { label: 'Latency', value: latency ? `${latency}ms` : '—', color: 'text-cyan-300' },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="bg-slate-800/40 border border-white/5 rounded-xl p-2.5">
-                <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">{label}</p>
-                <p className={`text-sm font-bold font-mono ${color} truncate`}>{value}</p>
+        {/* Recent Voice Chats Sidebar */}
+        <AnimatePresence>
+          {showHistory && (
+            <motion.div
+              initial={{ x: -260, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -260, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-64 border-r border-white/5 bg-slate-950/80 backdrop-blur-xl flex flex-col shrink-0 overflow-hidden"
+            >
+              <div className="p-3 border-b border-white/5 flex items-center justify-between">
+                <span className="text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">
+                  Recent Voice Chats
+                </span>
+                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                  {voiceHistory.length}
+                </span>
               </div>
-            ))}
-          </div>
 
-          {/* Orb */}
-          <div className="flex flex-col items-center gap-8">
-            <MicrophoneOrb
-              state={voiceState}
-              onClick={handleOrbClick}
-              disabled={voiceState === 'thinking' || voiceState === 'speaking'}
-            />
-            <VoiceWaveform state={voiceState} />
-          </div>
+              <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-indigo-600/20">
+                {voiceHistory.length === 0 ? (
+                  <div className="p-4 text-center text-xs font-mono text-slate-500 py-8">
+                    No recent voice chats yet. Tap the orb to start speaking!
+                  </div>
+                ) : (
+                  voiceHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleSelectHistoryItem(item)}
+                      className="w-full p-2.5 rounded-xl border border-white/5 hover:border-indigo-500/30 hover:bg-slate-800/50 cursor-pointer transition-all text-left group"
+                    >
+                      <p className="text-xs font-semibold text-slate-200 truncate group-hover:text-cyan-300">
+                        "{item.user_transcript}"
+                      </p>
+                      <p className="text-[10px] font-mono text-slate-400 truncate mt-1">
+                        {item.ai_response || 'No response'}
+                      </p>
+                      <div className="flex items-center justify-between mt-1.5 text-[9px] font-mono text-slate-500">
+                        <span>{new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-indigo-400">{item.model_used || selectedModel}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
 
-          {/* Controls */}
-          <VoiceControls
-            state={voiceState}
-            isContinuous={isContinuous}
-            isConnected={isConnected}
-            onPushToTalk={startListening}
-            onStop={stopListening}
-            onToggleContinuous={toggleContinuous}
-            onStopSpeaking={stopSpeaking}
-          />
-        </div>
+              {voiceHistory.length > 0 && (
+                <div className="p-3 border-t border-white/5">
+                  <button
+                    onClick={handleClearHistory}
+                    className="w-full py-1.5 bg-slate-900 hover:bg-red-500/20 hover:text-red-300 text-slate-400 border border-white/5 hover:border-red-500/30 rounded-lg text-xs font-mono transition-all"
+                  >
+                    Clear History
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Right — Transcript */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <VoiceTranscript
-            entries={transcript}
-            liveText={liveText}
-            aiText={aiText}
-            onClear={clearTranscript}
-          />
-        </div>
+        {/* Content View: Standby Orb View vs Active Split Conversation View */}
+        <AnimatePresence mode="wait">
+          {!hasStartedConversation && transcript.length === 0 ? (
+            /* Standby View: Full Screen Centered Listening Orb */
+            <motion.div
+              key="fullscreen-listening"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="flex-1 flex flex-col items-center justify-center p-8 relative"
+            >
+              {/* Stats overlay top right */}
+              <div className="absolute top-6 right-6 flex gap-3 text-xs opacity-60">
+                <span className="bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5 font-mono">Model: {selectedModel}</span>
+                <span className={`bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5 font-mono ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {isConnected ? 'Online' : 'Offline'}
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center gap-10 max-w-md w-full text-center">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-white tracking-wide">
+                    {voiceState === 'listening' ? 'I\'m Listening...' : 'Tap Orb to speak with NOVA_X'}
+                  </h3>
+                  <p className="text-sm text-slate-400 min-h-[1.5rem] px-4 font-mono max-w-sm mx-auto">
+                    {liveText || 'Ask anything like: "What is quantum computing?"'}
+                  </p>
+                </div>
+
+                {/* Centered Orb & Waveform */}
+                <div className="flex flex-col items-center gap-6 py-6">
+                  <MicrophoneOrb
+                    state={voiceState}
+                    onClick={handleOrbClick}
+                    disabled={false}
+                  />
+                  <div className="h-10 w-64 flex items-center justify-center">
+                    <VoiceWaveform state={voiceState} />
+                  </div>
+                </div>
+
+                {/* Bottom controls */}
+                <VoiceControls
+                  state={voiceState}
+                  isContinuous={isContinuous}
+                  isConnected={isConnected}
+                  onPushToTalk={startListening}
+                  onStop={stopListening}
+                  onToggleContinuous={toggleContinuous}
+                  onStopSpeaking={stopSpeaking}
+                />
+              </div>
+            </motion.div>
+          ) : (
+            /* Active Conversation View: Stays open after AI replies! */
+            <motion.div
+              key="split-conversation"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex overflow-hidden"
+            >
+              {/* Left Column - Minimized status/orb & mic controls */}
+              <div className="flex flex-col items-center justify-between w-80 shrink-0 px-6 py-8 border-r border-white/5 bg-slate-950/40">
+                <div className="grid grid-cols-2 gap-3 w-full text-center">
+                  {[
+                    { label: 'Model', value: selectedModel || 'llama3.1:8b', color: 'text-indigo-300' },
+                    { label: 'Status', value: isConnected ? 'Online' : 'Offline', color: isConnected ? 'text-emerald-400' : 'text-red-400' },
+                    { label: 'Confidence', value: `${confidence}%`, color: 'text-amber-300' },
+                    { label: 'Latency', value: latency ? `${latency}ms` : '—', color: 'text-cyan-300' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="bg-slate-800/40 border border-white/5 rounded-xl p-2.5">
+                      <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">{label}</p>
+                      <p className={`text-sm font-bold font-mono ${color} truncate`}>{value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Compact Minimized Orb & Waveform */}
+                <div className="flex flex-col items-center gap-6">
+                  <div className="scale-90 transition-transform">
+                    <MicrophoneOrb
+                      state={voiceState}
+                      onClick={handleOrbClick}
+                      disabled={voiceState === 'thinking' || voiceState === 'speaking'}
+                    />
+                  </div>
+                  <VoiceWaveform state={voiceState} />
+                </div>
+
+                {/* Minimized controls */}
+                <VoiceControls
+                  state={voiceState}
+                  isContinuous={isContinuous}
+                  isConnected={isConnected}
+                  onPushToTalk={startListening}
+                  onStop={stopListening}
+                  onToggleContinuous={toggleContinuous}
+                  onStopSpeaking={stopSpeaking}
+                />
+              </div>
+
+              {/* Right Column - Persistent conversation log */}
+              <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/10 relative">
+                <VoiceTranscript
+                  entries={transcript}
+                  liveText={liveText}
+                  aiText={aiText}
+                  onClear={handleNewSession}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Error banner */}
@@ -345,3 +553,4 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
     </div>
   );
 };
+

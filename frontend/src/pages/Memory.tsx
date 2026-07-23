@@ -75,7 +75,7 @@ export const Memory: React.FC = () => {
       {/* Add Memory Form */}
       <div className="glass-panel p-6 rounded-2xl border border-white/10">
         <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-cyan-400" /> Store New Fact into SAI Memory
+          <Sparkles className="w-4 h-4 text-cyan-400" /> Store New Fact into NOVA_X Memory
         </h3>
 
         {error && (
@@ -89,7 +89,7 @@ export const Memory: React.FC = () => {
             type="text"
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
-            placeholder="e.g. User preference: Prefers TypeScript, building SAI OS in Python & React"
+            placeholder="e.g. User preference: Prefers TypeScript, building NOVA_X OS in Python & React"
             className="flex-1 glass-input px-4 py-3 rounded-xl text-sm"
           />
           <select
@@ -131,7 +131,7 @@ export const Memory: React.FC = () => {
 
         {filteredMemories.length === 0 ? (
           <div className="py-12 text-center text-slate-400 text-xs">
-            No long-term memories found. Add key details above for SAI to remember.
+            No long-term memories found. Add key details above for NOVA_X to remember.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

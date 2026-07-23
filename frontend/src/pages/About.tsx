@@ -20,13 +20,13 @@ export const About: React.FC = () => {
             <Cpu className="w-10 h-10" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-white">SAI — Srujan Artificial Intelligence</h1>
+            <h1 className="text-2xl font-extrabold text-white">NOVA_X — Neural Operating Virtual Assistance</h1>
             <p className="text-sm text-cyan-300 font-mono">Personal AI Operating System • Phase 1 Release</p>
           </div>
         </div>
 
         <p className="text-slate-300 text-sm leading-relaxed max-w-3xl">
-          SAI is a production-grade personal AI assistant OS designed for privacy-first, local-first intelligence. Powered by fast asynchronous microservices, vector memory retention, and flexible local/cloud model orchestration.
+          NOVA_X is a production-grade personal AI assistant OS designed for privacy-first, local-first intelligence. Powered by fast asynchronous microservices, vector memory retention, and flexible local/cloud model orchestration.
         </p>
       </div>
 
@@ -60,7 +60,7 @@ export const About: React.FC = () => {
       {/* Roadmap Preview */}
       <div className="glass-panel p-6 rounded-2xl border border-white/10">
         <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-cyan-400" /> SAI Project Roadmap (20 Phases)
+          <Sparkles className="w-4 h-4 text-cyan-400" /> NOVA_X Project Roadmap (20 Phases)
         </h3>
 
         <div className="space-y-3">

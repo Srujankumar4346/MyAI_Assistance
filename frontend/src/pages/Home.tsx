@@ -39,10 +39,10 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-mono mb-4">
-            <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> SAI ARCHITECTURE PHASE 1 ACTIVE
+            <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> NOVA_X ARCHITECTURE ACTIVE
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-            Welcome back to <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-indigo-500 bg-clip-text text-transparent">SAI OS</span>
+            Welcome back to <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-indigo-500 bg-clip-text text-transparent">NOVA_X OS</span>
           </h1>
           <p className="text-slate-300 text-sm leading-relaxed">
             Your personal artificial intelligence system foundation is online. Connected to local Ollama inference, long-term ChromaDB vector storage, and SQLite/PostgreSQL session persistence.

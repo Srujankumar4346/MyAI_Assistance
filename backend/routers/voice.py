@@ -1,6 +1,7 @@
 """
 Voice Router — REST + WebSocket endpoints for Phase 2 Voice AI.
 """
+import re
 import uuid
 import base64
 import asyncio
@@ -212,14 +213,44 @@ async def voice_websocket(
             # Signal thinking
             await websocket.send_json({"type": "thinking"})
 
-            # Stream AI response
+            # Generate AI response (real-time streaming text + sentence-level real-time audio)
             messages = [{"role": "user", "content": user_text}]
             full_response = ""
+            sentence_buffer = ""
+            rate = speed_to_rate(vs.speed)
+            pitch_str = pitch_to_hz(vs.pitch)
 
             try:
                 async for chunk in ollama_service.generate_stream(messages, model=model):
                     full_response += chunk
+                    sentence_buffer += chunk
+                    # Stream text chunk immediately to frontend for real-time printing
                     await websocket.send_json({"type": "text_chunk", "content": chunk})
+
+                    # Check for completed sentences to synthesize speech in real-time
+                    while True:
+                        match = re.search(r'([.!?\n])\s+', sentence_buffer)
+                        if not match:
+                            break
+                        end_idx = match.end()
+                        sentence = sentence_buffer[:end_idx].strip()
+                        sentence_buffer = sentence_buffer[end_idx:]
+
+                        if sentence:
+                            try:
+                                audio_bytes = await synthesize_speech(
+                                    sentence, voice=vs.voice_name, rate=rate, pitch=pitch_str
+                                )
+                                if audio_bytes:
+                                    encoded = base64.b64encode(audio_bytes).decode("utf-8")
+                                    await websocket.send_json({
+                                        "type": "audio_chunk",
+                                        "data": encoded,
+                                        "mime": "audio/mpeg"
+                                    })
+                            except Exception as e:
+                                logger.warning(f"Sentence TTS error: {e}")
+
             except Exception as e:
                 logger.error(f"Voice AI stream error: {e}")
                 await websocket.send_json({
@@ -228,23 +259,21 @@ async def voice_websocket(
                 })
                 continue
 
-            # TTS synthesis
-            if full_response.strip():
-                rate = speed_to_rate(vs.speed)
-                pitch_str = pitch_to_hz(vs.pitch)
+            # Synthesize speech for any remaining trailing text
+            if sentence_buffer.strip():
                 try:
-                    async for audio_chunk in synthesize_speech_stream(
-                        full_response, voice=vs.voice_name, rate=rate, pitch=pitch_str
-                    ):
-                        encoded = base64.b64encode(audio_chunk).decode("utf-8")
+                    audio_bytes = await synthesize_speech(
+                        sentence_buffer.strip(), voice=vs.voice_name, rate=rate, pitch=pitch_str
+                    )
+                    if audio_bytes:
+                        encoded = base64.b64encode(audio_bytes).decode("utf-8")
                         await websocket.send_json({
                             "type": "audio_chunk",
                             "data": encoded,
                             "mime": "audio/mpeg"
                         })
                 except Exception as e:
-                    logger.warning(f"TTS streaming error: {e}")
-                    await websocket.send_json({"type": "tts_fallback", "text": full_response})
+                    logger.warning(f"Remaining TTS error: {e}")
 
             # Save session to database
             duration_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)

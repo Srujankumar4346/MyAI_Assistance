@@ -68,7 +68,7 @@ export const SettingsPage: React.FC<SettingsProps> = ({ selectedModel, setSelect
       <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <SettingsIcon className="w-6 h-6 text-indigo-400" /> SAI Configuration & Preferences
+            <SettingsIcon className="w-6 h-6 text-indigo-400" /> NOVA_X Configuration & Preferences
           </h2>
           <p className="text-xs text-slate-300 mt-1">Customize AI model engines, memory behavior, and UI features.</p>
         </div>

@@ -41,9 +41,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess }) => {
             <Cpu className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-white via-indigo-200 to-cyan-400 bg-clip-text text-transparent">
-            SAI Authentication
+            NOVA_X Authentication
           </h2>
-          <p className="text-sm text-slate-400 mt-1">Srujan Artificial Intelligence Operating System</p>
+          <p className="text-sm text-slate-400 mt-1">Neural Operating Virtual Assistance</p>
         </div>
 
         {error && (
@@ -93,7 +93,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess }) => {
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                <Sparkles className="w-4 h-4" /> Initialize SAI System
+                <Sparkles className="w-4 h-4" /> Initialize NOVA_X System
               </>
             )}
           </button>

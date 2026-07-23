@@ -188,7 +188,7 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
           if (lastIdx >= 0 && updated[lastIdx].sender === 'assistant') {
             updated[lastIdx] = { 
               ...updated[lastIdx], 
-              content: updated[lastIdx].content || `[Error: ${err.message || 'Failed to receive response from SAI engine'}]` 
+              content: updated[lastIdx].content || `[Error: ${err.message || 'Failed to receive response from NOVA_X engine'}]` 
             };
           }
           return updated;
@@ -297,7 +297,7 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
               <div className="p-4 bg-indigo-600/20 rounded-3xl border border-indigo-500/30 text-cyan-300 mb-4 animate-pulse-glow">
                 <Sparkles className="w-10 h-10" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">How can SAI assist you today?</h3>
+              <h3 className="text-xl font-bold text-white mb-2">How can NOVA_X assist you today?</h3>
               <p className="text-slate-400 text-xs max-w-md">
                 Select an Ollama model, ask coding or general intelligence questions, or leverage long-term vector memory context.
               </p>
@@ -306,7 +306,7 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
                 {[
                   "Write a Python FastAPI async endpoint",
                   "Explain how ChromaDB vector search works",
-                  "Draft a project structure for SAI Phase 2",
+                  "Draft a project structure for NOVA_X Phase 2",
                   "What technologies power this AI OS?"
                 ].map((prompt, i) => (
                   <button
@@ -376,7 +376,7 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
                         </ReactMarkdown>
                       ) : (
                         <div className="flex items-center gap-1.5 py-1 px-0.5">
-                          <span className="text-xs text-indigo-300/80 mr-1 font-mono">SAI is typing</span>
+                          <span className="text-xs text-indigo-300/80 mr-1 font-mono">NOVA_X is typing</span>
                           <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                           <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                           <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -421,7 +421,7 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={2}
-              placeholder="Ask SAI anything... (Shift + Enter for new line)"
+              placeholder="Ask NOVA_X anything... (Shift + Enter for new line)"
               className="w-full pl-4 pr-24 py-3 glass-input rounded-xl text-sm resize-none"
             />
 

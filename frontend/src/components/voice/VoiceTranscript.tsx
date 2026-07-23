@@ -15,13 +15,16 @@ export const VoiceTranscript: React.FC<VoiceTranscriptProps> = ({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const timer = setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [entries, liveText, aiText]);
 
   const isEmpty = entries.length === 0 && !liveText && !aiText;
 
   return (
-    <div className="relative flex flex-col h-full">
+    <div className="relative flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/5">
         <span className="text-xs font-mono text-indigo-300/70 tracking-widest uppercase">
@@ -39,7 +42,7 @@ export const VoiceTranscript: React.FC<VoiceTranscriptProps> = ({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-indigo-600/30">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-indigo-600/30">
         {isEmpty && (
           <div className="flex flex-col items-center justify-center h-full text-slate-600 text-sm font-mono gap-2 pt-12">
             <span className="text-3xl">🎙️</span>
