@@ -4,7 +4,12 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build && cd ..
+    buildCommand: |
+      pip install -r requirements.txt
+      cd frontend
+      npm install
+      npm run build
+      cd ..
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
@@ -22,4 +27,6 @@ services:
       - key: ADMIN_USERNAME
         value: "SrujanKumar"
       - key: ADMIN_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false

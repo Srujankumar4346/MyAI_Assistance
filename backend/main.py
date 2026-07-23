@@ -53,9 +53,10 @@ async def startup_event():
 
 # Serve React frontend static files
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+FRONTEND_ASSETS = FRONTEND_DIST / "assets"
 
-if FRONTEND_DIST.exists():
-    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="assets")
+if FRONTEND_DIST.exists() and FRONTEND_ASSETS.exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_ASSETS)), name="assets")
 
     @app.get("/")
     def serve_root():
@@ -71,9 +72,12 @@ if FRONTEND_DIST.exists():
             return FileResponse(str(file_path))
         return FileResponse(str(FRONTEND_DIST / "index.html"))
 else:
+    logger.warning(f"Frontend dist not found at {FRONTEND_DIST}. Serving API only.")
+
     @app.get("/")
     def read_root():
         return {"status": "online", "message": f"Welcome to {settings.APP_NAME} Backend API. Visit /docs for documentation."}
+
 
 if __name__ == "__main__":
     import uvicorn
