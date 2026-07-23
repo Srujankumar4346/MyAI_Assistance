@@ -17,11 +17,10 @@ memory/chroma_storage/
 
 # Node packages and build outputs
 node_modules/
-dist/
 build/
 .eslintcache
 frontend/node_modules/
-frontend/dist/
+# frontend/dist is committed for Render deployment (pre-built)
 
 # Environment configurations & secrets
 .env
