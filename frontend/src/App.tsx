@@ -21,7 +21,8 @@ export function App() {
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
-      setUser({ username: 'admin', token });
+      const savedUser = localStorage.getItem('novax_username') || 'admin';
+      setUser({ username: savedUser, token });
     }
   }, []);
 

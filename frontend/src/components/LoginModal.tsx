@@ -8,8 +8,8 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess }) => {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,9 +21,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess }) => {
     try {
       const data = await api.login({ username, password });
       setAuthToken(data.access_token);
+      localStorage.setItem('novax_username', data.username);
       onLoginSuccess({ username: data.username, token: data.access_token });
     } catch (err: any) {
-      setError(err.message || 'Invalid username or password');
+      const detail = err?.response?.data?.detail || err.message || 'Invalid username or password';
+      setError(detail);
     } finally {
       setLoading(false);
     }
@@ -100,7 +102,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess }) => {
         </form>
 
         <div className="mt-6 text-center text-xs text-slate-500">
-          Default Dev Credentials: <code className="text-cyan-400 font-mono">admin / admin123</code>
+          NOVA_X Secure Authentication Portal
         </div>
       </div>
     </div>

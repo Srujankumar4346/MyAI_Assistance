@@ -50,6 +50,9 @@ def read_root():
 @app.on_event("startup")
 async def startup_event():
     logger.info(f"Started {settings.APP_NAME} v{settings.VERSION}")
+    logger.info(f"Configured ADMIN_USERNAME = '{settings.ADMIN_USERNAME}'")
+    logger.info(f"DATABASE_URL = '{settings.DATABASE_URL}'")
+
 
 # Serve React frontend static files
 FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
