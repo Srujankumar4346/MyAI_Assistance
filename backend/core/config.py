@@ -1,6 +1,10 @@
 import os
 import sys
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Load .env file explicitly into environment variables
+load_dotenv()
 
 
 def _require_env(key: str) -> str:
