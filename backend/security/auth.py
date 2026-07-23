@@ -11,7 +11,9 @@ from backend.database.models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: Optional[str]) -> bool:
+    if not hashed_password:
+        return False
     try:
         return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
     except Exception:

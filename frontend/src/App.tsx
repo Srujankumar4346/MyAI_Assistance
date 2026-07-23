@@ -19,6 +19,20 @@ export function App() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    // Check URL parameters for OAuth token redirect
+    const urlParams = new URLSearchParams(window.location.hash.includes('?') ? window.location.hash.split('?')[1] : window.location.search);
+    const urlToken = urlParams.get('token');
+    const urlUsername = urlParams.get('username');
+
+    if (urlToken && urlUsername) {
+      localStorage.setItem('novax_token', urlToken);
+      localStorage.setItem('novax_username', urlUsername);
+      setUser({ username: urlUsername, token: urlToken });
+      // Clean query params from URL
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash.split('?')[0]);
+      return;
+    }
+
     const token = getAuthToken();
     if (token) {
       const savedUser = localStorage.getItem('novax_username') || 'admin';
