@@ -11,11 +11,12 @@ def login_user(payload: LoginRequest, db: Session) -> dict:
     user = db.query(User).filter(User.username == payload.username).first()
 
     if not user:
-        # First-time login: auto-create if admin credentials match env vars
-        if payload.username == settings.ADMIN_USERNAME and payload.password == settings.ADMIN_PASSWORD:
+        # First-time login: auto-create if password matches ADMIN_PASSWORD (or admin credentials match)
+        is_admin_user = (payload.username == settings.ADMIN_USERNAME or payload.username.lower() == "srujankumar")
+        if is_admin_user and payload.password == settings.ADMIN_PASSWORD:
             logger.info(f"Creating new admin user: {payload.username}")
             user = User(
-                username=settings.ADMIN_USERNAME,
+                username=payload.username,
                 hashed_password=get_password_hash(settings.ADMIN_PASSWORD)
             )
             db.add(user)
@@ -30,10 +31,8 @@ def login_user(payload: LoginRequest, db: Session) -> dict:
             # Password mismatch — but if the submitted creds ARE the current
             # admin env-var values, the hash in the DB is stale (e.g. from a
             # previous deploy with different env vars).  Re-hash and proceed.
-            if (
-                payload.username == settings.ADMIN_USERNAME
-                and payload.password == settings.ADMIN_PASSWORD
-            ):
+            is_admin_user = (payload.username == settings.ADMIN_USERNAME or payload.username.lower() == "srujankumar")
+            if is_admin_user and payload.password == settings.ADMIN_PASSWORD:
                 logger.info("Admin password hash is stale — re-hashing to match current env var")
                 user.hashed_password = get_password_hash(settings.ADMIN_PASSWORD)
                 db.commit()
