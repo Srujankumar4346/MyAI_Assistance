@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, MessageSquare, Brain, Settings, Terminal, Info, Cpu, Sparkles, Mic } from 'lucide-react';
+import { Home, MessageSquare, Brain, Settings, Terminal, Info, Cpu, Sparkles, Mic, Network, GraduationCap, Monitor, Activity, Globe } from 'lucide-react';
 
 interface SidebarProps {
   selectedModel: string;
@@ -13,9 +13,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, onNavigate }) =
 
   const navItems = [
     { id: 'home', path: '/', label: 'Home', icon: Home },
+    { id: 'browser', path: '/browser', label: 'Browser Engine', icon: Globe, badge: 'P5' },
+    { id: 'desktop', path: '/desktop', label: 'Desktop Control', icon: Monitor, badge: 'P4' },
+    { id: 'system', path: '/system', label: 'System Monitor', icon: Activity, badge: 'P4' },
     { id: 'chat', path: '/chat', label: 'Chat', icon: MessageSquare },
-    { id: 'voice', path: '/voice', label: 'Voice Assistant', icon: Mic, badge: 'NEW' },
-    { id: 'memory', path: '/memory', label: 'Memory', icon: Brain },
+    { id: 'voice', path: '/voice', label: 'Voice Assistant', icon: Mic },
+    { id: 'memory', path: '/memory', label: 'Neural Memory', icon: Brain },
+    { id: 'knowledge', path: '/knowledge', label: 'Knowledge Graph', icon: Network },
+    { id: 'learning', path: '/learning', label: 'Learning AI', icon: GraduationCap },
     { id: 'settings', path: '/settings', label: 'Settings', icon: Settings },
     { id: 'logs', path: '/logs', label: 'System Logs', icon: Terminal },
     { id: 'about', path: '/about', label: 'About NOVA_X', icon: Info },
@@ -41,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ selectedModel, onNavigate }) =
             <h1 className="font-bold text-lg tracking-wider text-white bg-gradient-to-r from-white via-indigo-200 to-cyan-400 bg-clip-text text-transparent">
               NOVA_X OS
             </h1>
-            <p className="text-xs text-indigo-300/70 font-mono">v2.0.0 Phase 2</p>
+            <p className="text-xs text-indigo-300/70 font-mono">v5.0.0 Phase 5</p>
           </div>
         </div>
 

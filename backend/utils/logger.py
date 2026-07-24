@@ -18,3 +18,22 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("NOVA_X")
+
+TELEMETRY_LOG_FILE = os.path.join(LOGS_DIR, "telemetry.jsonl")
+
+def log_telemetry(event_type: str, data: dict):
+    """
+    Logs local telemetry data (respecting privacy).
+    Feeds into the Learning Engine.
+    """
+    import json
+    try:
+        payload = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "event_type": event_type,
+            "data": data
+        }
+        with open(TELEMETRY_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload) + "\n")
+    except Exception as e:
+        logger.error(f"Failed to write telemetry: {e}")

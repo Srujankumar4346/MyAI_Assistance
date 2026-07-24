@@ -8,6 +8,16 @@ from backend.core.config import settings
 from backend.database.connection import engine, Base
 from backend.routers import router as api_router
 from backend.utils.logger import logger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.memory import MemoryJobStore
+# Phase 1/2 models must be imported before Phase 3 so FK resolution works
+import backend.database.models  # noqa: F401
+# Phase 3 — Neural Memory Engine models
+import backend.memory_engine.models  # noqa: F401
+# Phase 4 — Desktop Automation Engine models
+import backend.desktop_engine.models  # noqa: F401
+# Phase 5 — Browser Automation Engine models
+import backend.browser_engine.models  # noqa: F401
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
@@ -52,6 +62,47 @@ async def startup_event():
     logger.info(f"Started {settings.APP_NAME} v{settings.VERSION}")
     logger.info(f"Configured ADMIN_USERNAME = '{settings.ADMIN_USERNAME}'")
     logger.info(f"DATABASE_URL = '{settings.DATABASE_URL}'")
+    
+    # Initialize Scheduler
+    jobstores = {
+        'default': MemoryJobStore()
+    }
+    app.state.scheduler = AsyncIOScheduler(jobstores=jobstores)
+    
+    # Register Phase 3 Memory & Learning Tasks
+    app.state.scheduler.add_job(
+        id="memory_decay_task",
+        func="backend.memory_engine.tasks:run_memory_decay",
+        trigger="interval",
+        minutes=60,
+        replace_existing=True
+    )
+    
+    app.state.scheduler.add_job(
+        id="learning_reinforcement_task",
+        func="backend.memory_engine.tasks:run_learning_reinforcement",
+        trigger="interval",
+        minutes=30,
+        replace_existing=True
+    )
+    
+    # Register Phase 4 Desktop Scheduled Tasks
+    app.state.scheduler.add_job(
+        id="desktop_scheduled_tasks",
+        func="backend.desktop_engine.tasks:run_desktop_scheduler",
+        trigger="interval",
+        seconds=15,
+        replace_existing=True
+    )
+    
+    app.state.scheduler.start()
+    logger.info("APScheduler started with MemoryJobStore.")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if hasattr(app.state, 'scheduler'):
+        app.state.scheduler.shutdown()
+        logger.info("APScheduler stopped.")
 
 
 # Serve React frontend static files

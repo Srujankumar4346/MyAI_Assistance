@@ -58,6 +58,14 @@ class Settings(BaseSettings):
     # ── Gemini (cloud AI fallback) ────────────────────────────────────────────
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
+    # ── Browser Engine Feature Flags ──────────────────────────────────────────
+    BROWSER_ENABLED: bool = os.getenv("BROWSER_ENABLED", "True").lower() in ("true", "1", "yes")
+    BROWSER_RESEARCH: bool = os.getenv("BROWSER_RESEARCH", "True").lower() in ("true", "1", "yes")
+    BROWSER_DOWNLOADS: bool = os.getenv("BROWSER_DOWNLOADS", "True").lower() in ("true", "1", "yes")
+    BROWSER_FORMS: bool = os.getenv("BROWSER_FORMS", "True").lower() in ("true", "1", "yes")
+    BROWSER_MEMORY: bool = os.getenv("BROWSER_MEMORY", "True").lower() in ("true", "1", "yes")
+    BROWSER_WEBSOCKET: bool = os.getenv("BROWSER_WEBSOCKET", "True").lower() in ("true", "1", "yes")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Enforce required SECRET_KEY at startup

@@ -126,4 +126,126 @@ export const api = {
     const res = await client.delete('/voice/history');
     return res.data;
   },
+
+  // ─── Phase 3: Neural Memory Engine ───────────────────────────────────────
+  // Memory Store
+  storeMemory: async (payload: {
+    content: string;
+    memory_type?: string;
+    category?: string;
+    tags?: string[];
+    source?: string;
+    project_name?: string;
+    importance_override?: number;
+  }) => {
+    const res = await client.post('/memory/store', payload);
+    return res.data;
+  },
+  // Memory Search
+  searchMemories: async (params: {
+    q?: string;
+    category?: string;
+    memory_type?: string;
+    tags?: string;
+    date_from?: string;
+    date_to?: string;
+    min_importance?: number;
+    pinned_only?: boolean;
+    limit?: number;
+  }) => {
+    const res = await client.get('/memory/search', { params });
+    return res.data;
+  },
+  getAllEnhancedMemories: async (limit = 100) => {
+    const res = await client.get('/memory/all', { params: { limit } });
+    return res.data;
+  },
+  getMemoryTimeline: async () => {
+    const res = await client.get('/memory/timeline');
+    return res.data;
+  },
+  getMemoryStatistics: async () => {
+    const res = await client.get('/memory/statistics');
+    return res.data;
+  },
+  getMemoryCategories: async () => {
+    const res = await client.get('/memory/categories');
+    return res.data;
+  },
+  updateMemory: async (id: string, updates: Record<string, any>) => {
+    const res = await client.put(`/memory/update/${id}`, updates);
+    return res.data;
+  },
+  deleteEnhancedMemory: async (id: string) => {
+    const res = await client.delete(`/memory/delete/${id}`);
+    return res.data;
+  },
+  pinMemory: async (id: string) => {
+    const res = await client.post(`/memory/pin/${id}`);
+    return res.data;
+  },
+  archiveMemory: async (id: string) => {
+    const res = await client.post(`/memory/archive/${id}`);
+    return res.data;
+  },
+  reinforceMemory: async (id: string) => {
+    const res = await client.post(`/memory/reinforce/${id}`);
+    return res.data;
+  },
+  exportMemories: async () => {
+    const res = await client.get('/memory/export', { responseType: 'blob' });
+    return res.data;
+  },
+  importMemories: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await client.post('/memory/import', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+  // Document Intelligence
+  uploadDocument: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await client.post('/memory/document/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+  listDocuments: async () => {
+    const res = await client.get('/memory/documents');
+    return res.data;
+  },
+  // Knowledge Graph
+  getKnowledgeGraph: async () => {
+    const res = await client.get('/knowledge/graph');
+    return res.data;
+  },
+  searchKnowledge: async (q: string) => {
+    const res = await client.get('/knowledge/search', { params: { q } });
+    return res.data;
+  },
+  getNodeRelationships: async (nodeId: string) => {
+    const res = await client.get('/knowledge/relationships', { params: { node_id: nodeId } });
+    return res.data;
+  },
+  addKnowledgeNode: async (payload: { label: string; node_type: string; description?: string }) => {
+    const res = await client.post('/knowledge/node', payload);
+    return res.data;
+  },
+  // Learning Profile
+  getLearningProfile: async () => {
+    const res = await client.get('/learning/profile');
+    return res.data;
+  },
+  updateLearningProfile: async (updates: Record<string, any>) => {
+    const res = await client.post('/learning/update', updates);
+    return res.data;
+  },
+  getLearningStatistics: async () => {
+    const res = await client.get('/learning/statistics');
+    return res.data;
+  },
 };
+

@@ -8,7 +8,12 @@ import { LoginModal } from './components/LoginModal';
 import { Home } from './pages/Home';
 import { Chat } from './pages/Chat';
 import { Voice } from './pages/Voice';
-import { Memory } from './pages/Memory';
+import Memory from './pages/Memory';
+import Knowledge from './pages/Knowledge';
+import Learning from './pages/Learning';
+import DesktopControlCenter from './pages/Desktop';
+import SystemMonitor from './pages/System';
+import BrowserControlCenter from './pages/Browser';
 import { SettingsPage } from './pages/Settings';
 import { Logs } from './pages/Logs';
 import { About } from './pages/About';
@@ -77,6 +82,11 @@ export function App() {
               <Route path="/chat" element={<Chat selectedModel={selectedModel} setSelectedModel={setSelectedModel} />} />
               <Route path="/voice" element={<Voice selectedModel={selectedModel} />} />
               <Route path="/memory" element={<Memory />} />
+              <Route path="/knowledge" element={<Knowledge />} />
+              <Route path="/learning" element={<Learning />} />
+              <Route path="/desktop" element={<DesktopControlCenter />} />
+              <Route path="/system" element={<SystemMonitor />} />
+              <Route path="/browser" element={<BrowserControlCenter />} />
               <Route path="/settings" element={<SettingsPage selectedModel={selectedModel} setSelectedModel={setSelectedModel} />} />
               <Route path="/logs" element={<Logs />} />
               <Route path="/about" element={<About />} />

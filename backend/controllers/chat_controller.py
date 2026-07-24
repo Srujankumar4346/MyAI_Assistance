@@ -10,7 +10,10 @@ from backend.database.connection import SessionLocal
 from backend.database.models import Chat, Message, User
 from backend.schemas.schemas import ChatMessageInput
 from backend.services.ollama_service import ollama_service
-from backend.memory.memory_manager import memory_manager
+from backend.memory_engine.context import context_engine
+from backend.memory_engine.learning import learning_engine
+from backend.memory_engine.knowledge_graph import knowledge_graph
+from backend.memory_engine.neural_memory import neural_memory
 from backend.core.config import settings
 
 
@@ -38,7 +41,7 @@ def get_messages(chat_id: str, db: Session, current_user: User):
 def _save_assistant_message(chat_id: str, content: str, model: str) -> None:
     """
     Save the completed assistant message in its own DB session.
-    Called as a BackgroundTask — guaranteed to close even if streaming is interrupted.
+    Called as a BackgroundTask.
     """
     db = SessionLocal()
     try:
@@ -50,6 +53,35 @@ def _save_assistant_message(chat_id: str, content: str, model: str) -> None:
         raise
     finally:
         db.close()
+
+
+async def _phase3_post_chat(user_id: int, user_text: str, ai_response: str) -> None:
+    """
+    Phase 3 background task — runs after each chat turn:
+    1. Update the learning profile
+    2. Extract entities and ingest to knowledge graph
+    3. Auto-store conversation memories (high-importance only)
+    """
+    import asyncio
+    try:
+        await learning_engine.update_from_conversation(user_id, user_text, ai_response)
+        combined = f"{user_text} {ai_response}"
+        await knowledge_graph.ingest_text(combined, user_id)
+        # Auto-store high-importance content as episodic memory
+        from backend.memory_engine.neural_memory import compute_importance
+        importance = compute_importance(user_text, "episodic", "general")
+        if importance >= 60:
+            await neural_memory.store_memory(
+                content=user_text,
+                user_id=user_id,
+                memory_type="episodic",
+                category="general",
+                source="chat",
+                importance_override=importance,
+            )
+    except Exception as e:
+        from backend.utils.logger import logger
+        logger.warning(f"[Phase3PostChat] Background task failed: {e}")
 
 
 async def post_chat_message(
@@ -80,9 +112,12 @@ async def post_chat_message(
     db.add(user_msg)
     db.commit()
 
-    # Retrieve memory context (ChromaDB or empty)
-    memories = memory_manager.query_memories(payload.content, n_results=3)
-    memory_context = "\n".join([f"- {m['content']}" for m in memories]) if memories else ""
+    # Phase 3: Rich context from Neural Memory Engine
+    memory_context = await context_engine.build_context(
+        user_id=current_user.id,
+        query=payload.content,
+        max_memories=8,
+    )
 
     # Retrieve recent conversation history (last 10 messages)
     past_messages = (
@@ -96,7 +131,7 @@ async def post_chat_message(
         for m in past_messages[-10:]
     ]
 
-    # ── Streaming generator — uses its OWN context, no session references ────
+    # ── Streaming generator ───────────────────────────────────────────────────
     collected: list[str] = []
 
     async def stream_generator() -> AsyncGenerator[str, None]:
@@ -109,16 +144,23 @@ async def post_chat_message(
                 collected.append(chunk)
                 yield chunk
         finally:
-            # Schedule DB write as a background task — runs AFTER response completes
-            # even if the client disconnects or an exception occurs.
             full_reply = "".join(collected)
             if full_reply:
+                # Save assistant message
                 background_tasks.add_task(
                     _save_assistant_message,
                     chat_id,
                     full_reply,
                     payload.model or settings.DEFAULT_MODEL,
                 )
+                # Phase 3: Update learning profile from this conversation
+                background_tasks.add_task(
+                    _phase3_post_chat,
+                    current_user.id,
+                    payload.content,
+                    full_reply,
+                )
+
 
     return StreamingResponse(
         stream_generator(),
