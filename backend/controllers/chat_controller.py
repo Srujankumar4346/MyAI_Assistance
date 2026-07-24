@@ -1,20 +1,19 @@
 import uuid
-from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from backend.core.config import settings
 from backend.database.connection import SessionLocal
 from backend.database.models import Chat, Message, User
+from backend.memory_engine.context import context_engine
+from backend.memory_engine.knowledge_graph import knowledge_graph
+from backend.memory_engine.learning import learning_engine
+from backend.memory_engine.neural_memory import neural_memory
 from backend.schemas.schemas import ChatMessageInput
 from backend.services.ollama_service import ollama_service
-from backend.memory_engine.context import context_engine
-from backend.memory_engine.learning import learning_engine
-from backend.memory_engine.knowledge_graph import knowledge_graph
-from backend.memory_engine.neural_memory import neural_memory
-from backend.core.config import settings
 
 
 def get_history(db: Session, current_user: User):
@@ -62,13 +61,14 @@ async def _phase3_post_chat(user_id: int, user_text: str, ai_response: str) -> N
     2. Extract entities and ingest to knowledge graph
     3. Auto-store conversation memories (high-importance only)
     """
-    import asyncio
+
     try:
         await learning_engine.update_from_conversation(user_id, user_text, ai_response)
         combined = f"{user_text} {ai_response}"
         await knowledge_graph.ingest_text(combined, user_id)
         # Auto-store high-importance content as episodic memory
         from backend.memory_engine.neural_memory import compute_importance
+
         importance = compute_importance(user_text, "episodic", "general")
         if importance >= 60:
             await neural_memory.store_memory(
@@ -81,6 +81,7 @@ async def _phase3_post_chat(user_id: int, user_text: str, ai_response: str) -> N
             )
     except Exception as e:
         from backend.utils.logger import logger
+
         logger.warning(f"[Phase3PostChat] Background task failed: {e}")
 
 
@@ -160,7 +161,6 @@ async def post_chat_message(
                     payload.content,
                     full_reply,
                 )
-
 
     return StreamingResponse(
         stream_generator(),

@@ -1,7 +1,10 @@
 import time
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from backend.utils.logger import logger
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -22,6 +25,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             logger.error(
                 f"API Error: {request.method} {request.url.path} failed - "
                 f"Details: {str(e)} - Performance: {duration:.2f}ms",
-                exc_info=True
+                exc_info=True,
             )
             raise e

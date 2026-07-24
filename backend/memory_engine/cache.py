@@ -10,15 +10,17 @@ Usage:
     val = await cache.get("key")
     await cache.delete("key")
 """
-import json
+
 import asyncio
+import json
 import time
-from typing import Any, Optional
 from collections import OrderedDict
+from typing import Any, Optional
+
 from backend.utils.logger import logger
 
-
 # ── In-Process LRU Cache ───────────────────────────────────────────────────────
+
 
 class _LRUCache:
     """Thread-safe in-memory LRU cache with TTL support."""
@@ -59,11 +61,11 @@ class _LRUCache:
     async def keys_matching(self, prefix: str) -> list:
         async with self._lock:
             now = time.monotonic()
-            return [k for k, (_, exp) in self._store.items()
-                    if k.startswith(prefix) and now <= exp]
+            return [k for k, (_, exp) in self._store.items() if k.startswith(prefix) and now <= exp]
 
 
 # ── Redis Adapter ──────────────────────────────────────────────────────────────
+
 
 class _RedisCache:
     """Wraps aioredis with the same interface as _LRUCache."""
@@ -75,6 +77,7 @@ class _RedisCache:
     async def _get_client(self):
         if self._client is None:
             import redis.asyncio as aioredis
+
             self._client = await aioredis.from_url(self._url, decode_responses=False)
         return self._client
 
@@ -105,6 +108,7 @@ class _RedisCache:
 
 # ── Smart Cache: Redis if available, else LRU ─────────────────────────────────
 
+
 class SmartCache:
     """
     Tries Redis first; falls back to in-process LRU cache.
@@ -128,6 +132,7 @@ class SmartCache:
             return
         try:
             import redis.asyncio as aioredis  # noqa: F401
+
             r = _RedisCache(self._redis_url)
             client = await r._get_client()
             await client.ping()
@@ -187,5 +192,6 @@ class SmartCache:
 # ── Singleton ──────────────────────────────────────────────────────────────────
 
 import os
+
 _REDIS_URL = os.getenv("REDIS_URL", "")
 cache = SmartCache(redis_url=_REDIS_URL if _REDIS_URL else None)

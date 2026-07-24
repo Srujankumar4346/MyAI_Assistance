@@ -1,22 +1,27 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
 
 # Auth Schemas
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     username: str
+
 
 # Chat Schemas
 class ChatMessageInput(BaseModel):
     chat_id: Optional[str] = None
     content: str
     model: Optional[str] = "gemma"
+
 
 class MessageSchema(BaseModel):
     id: int
@@ -28,6 +33,7 @@ class MessageSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ChatSchema(BaseModel):
     id: str
     title: str
@@ -37,15 +43,18 @@ class ChatSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 # Memory Schemas
 class MemoryCreateInput(BaseModel):
     content: str
     category: Optional[str] = "general"
 
+
 class MemorySchema(BaseModel):
     id: str
     content: str
     category: str
+
 
 # Settings Schemas
 class AppSettingsSchema(BaseModel):

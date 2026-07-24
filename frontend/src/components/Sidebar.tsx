@@ -1,6 +1,21 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, MessageSquare, Brain, Settings, Terminal, Info, Cpu, Sparkles, Mic, Network, GraduationCap, Monitor, Activity, Globe } from 'lucide-react';
+import {
+  Home,
+  MessageSquare,
+  Brain,
+  Settings,
+  Terminal,
+  Info,
+  Cpu,
+  Sparkles,
+  Mic,
+  Network,
+  GraduationCap,
+  Monitor,
+  Activity,
+  Globe,
+} from 'lucide-react';
 
 interface SidebarProps {
   selectedModel: string;

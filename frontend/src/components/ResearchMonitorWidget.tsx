@@ -31,23 +31,28 @@ export const ResearchMonitorWidget: React.FC = React.memo(() => {
     const unsubscribe = subscribe('browser.research', (event: BrowserEvent) => {
       const payload = event.payload;
       if (event.event_type === 'RESEARCH_STARTED') {
-        setJobs(prev => [{
-          id: payload.id,
-          topic: payload.topic,
-          status: 'running',
-          currentWebsite: payload.currentWebsite || 'Initializing...',
-          currentStep: payload.currentStep || 'Starting',
-          pagesCrawled: 0,
-          sourcesCollected: 0,
-          progress: 0,
-          eta: 'Calculating...'
-        }, ...prev]);
+        setJobs((prev) => [
+          {
+            id: payload.id,
+            topic: payload.topic,
+            status: 'running',
+            currentWebsite: payload.currentWebsite || 'Initializing...',
+            currentStep: payload.currentStep || 'Starting',
+            pagesCrawled: 0,
+            sourcesCollected: 0,
+            progress: 0,
+            eta: 'Calculating...',
+          },
+          ...prev,
+        ]);
       } else if (event.event_type === 'RESEARCH_PROGRESS') {
-        setJobs(prev => prev.map(j => j.id === payload.id ? { ...j, ...payload } : j));
+        setJobs((prev) => prev.map((j) => (j.id === payload.id ? { ...j, ...payload } : j)));
       } else if (event.event_type === 'RESEARCH_COMPLETED') {
-        setJobs(prev => prev.map(j => j.id === payload.id ? { ...j, status: 'completed', progress: 100 } : j));
+        setJobs((prev) =>
+          prev.map((j) => (j.id === payload.id ? { ...j, status: 'completed', progress: 100 } : j))
+        );
       } else if (event.event_type === 'RESEARCH_FAILED') {
-        setJobs(prev => prev.map(j => j.id === payload.id ? { ...j, status: 'failed' } : j));
+        setJobs((prev) => prev.map((j) => (j.id === payload.id ? { ...j, status: 'failed' } : j)));
       }
     });
     return () => unsubscribe();
@@ -66,11 +71,15 @@ export const ResearchMonitorWidget: React.FC = React.memo(() => {
   }, []);
 
   if (isLoading) {
-    return <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">Loading Research Monitor...</div>;
+    return (
+      <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">
+        Loading Research Monitor...
+      </div>
+    );
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col h-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl overflow-hidden"
@@ -81,7 +90,7 @@ export const ResearchMonitorWidget: React.FC = React.memo(() => {
           Research Monitor
         </h3>
         <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-full">
-          {jobs.filter(j => j.status === 'running').length} Active
+          {jobs.filter((j) => j.status === 'running').length} Active
         </span>
       </div>
 
@@ -92,8 +101,8 @@ export const ResearchMonitorWidget: React.FC = React.memo(() => {
           </div>
         ) : (
           <AnimatePresence>
-            {jobs.map(job => (
-              <motion.div 
+            {jobs.map((job) => (
+              <motion.div
                 key={job.id}
                 layout
                 initial={{ opacity: 0, x: -20 }}
@@ -103,22 +112,46 @@ export const ResearchMonitorWidget: React.FC = React.memo(() => {
               >
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-medium text-gray-200 truncate" title={job.topic}>{job.topic}</span>
+                    <span className="text-sm font-medium text-gray-200 truncate" title={job.topic}>
+                      {job.topic}
+                    </span>
                     <span className="text-xs text-indigo-400 truncate">
                       {job.status === 'running' ? job.currentStep : job.status.toUpperCase()}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     {job.status === 'completed' ? (
-                      <button className="p-1.5 text-gray-400 hover:text-white rounded bg-gray-700/30 hover:bg-gray-700" title="View Report"><FileText className="w-3.5 h-3.5" /></button>
+                      <button
+                        className="p-1.5 text-gray-400 hover:text-white rounded bg-gray-700/30 hover:bg-gray-700"
+                        title="View Report"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                      </button>
                     ) : job.status === 'failed' ? (
-                      <button onClick={() => handleRetry(job.id)} className="p-1.5 text-gray-400 hover:text-white rounded bg-gray-700/30 hover:bg-gray-700"><RotateCcw className="w-3.5 h-3.5" /></button>
+                      <button
+                        onClick={() => handleRetry(job.id)}
+                        className="p-1.5 text-gray-400 hover:text-white rounded bg-gray-700/30 hover:bg-gray-700"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
                     ) : (
                       <>
-                        <button onClick={() => handlePauseResume(job.id, job.status)} className="p-1.5 text-gray-400 hover:text-white rounded bg-gray-700/30 hover:bg-gray-700">
-                          {job.status === 'paused' ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                        <button
+                          onClick={() => handlePauseResume(job.id, job.status)}
+                          className="p-1.5 text-gray-400 hover:text-white rounded bg-gray-700/30 hover:bg-gray-700"
+                        >
+                          {job.status === 'paused' ? (
+                            <Play className="w-3.5 h-3.5" />
+                          ) : (
+                            <Pause className="w-3.5 h-3.5" />
+                          )}
                         </button>
-                        <button onClick={() => handleCancel(job.id)} className="p-1.5 text-red-400 hover:text-red-300 rounded bg-red-900/20 hover:bg-red-900/40"><X className="w-3.5 h-3.5" /></button>
+                        <button
+                          onClick={() => handleCancel(job.id)}
+                          className="p-1.5 text-red-400 hover:text-red-300 rounded bg-red-900/20 hover:bg-red-900/40"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </>
                     )}
                   </div>
@@ -138,7 +171,7 @@ export const ResearchMonitorWidget: React.FC = React.memo(() => {
                 {job.status === 'running' && (
                   <div className="flex flex-col gap-1">
                     <div className="w-full bg-gray-900 rounded-full h-1.5 overflow-hidden">
-                      <motion.div 
+                      <motion.div
                         className="bg-indigo-400 h-1.5 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${job.progress}%` }}

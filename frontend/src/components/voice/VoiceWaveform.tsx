@@ -9,11 +9,11 @@ interface VoiceWaveformProps {
 const BAR_COUNT = 28;
 
 const stateColors: Record<VoiceState, string> = {
-  idle:      '#6366f1',
+  idle: '#6366f1',
   listening: '#10b981',
-  thinking:  '#f59e0b',
-  speaking:  '#3b82f6',
-  error:     '#ef4444',
+  thinking: '#f59e0b',
+  speaking: '#3b82f6',
+  error: '#ef4444',
 };
 
 export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({ state }) => {
@@ -35,14 +35,27 @@ export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({ state }) => {
             style={{ width: 3, backgroundColor: color, opacity: isActive ? 0.9 : 0.35 }}
             animate={
               isActive
-                ? { height: [baseHeight * 0.4, baseHeight, baseHeight * 0.6, baseHeight * 1.1, baseHeight * 0.5] }
+                ? {
+                    height: [
+                      baseHeight * 0.4,
+                      baseHeight,
+                      baseHeight * 0.6,
+                      baseHeight * 1.1,
+                      baseHeight * 0.5,
+                    ],
+                  }
                 : isThinking
-                ? { height: [4, 12, 4], opacity: [0.3, 0.7, 0.3] }
-                : { height: 4 }
+                  ? { height: [4, 12, 4], opacity: [0.3, 0.7, 0.3] }
+                  : { height: 4 }
             }
             transition={
               isActive || isThinking
-                ? { duration: 0.9 + Math.random() * 0.6, repeat: Infinity, delay, ease: 'easeInOut' }
+                ? {
+                    duration: 0.9 + Math.random() * 0.6,
+                    repeat: Infinity,
+                    delay,
+                    ease: 'easeInOut',
+                  }
                 : { duration: 0.3 }
             }
           />

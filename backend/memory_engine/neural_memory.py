@@ -10,22 +10,22 @@ Responsibilities:
   - Timeline grouping
   - Export / Import
 """
-import uuid
-import json
+
 import math
-import asyncio
+import uuid
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
 from backend.database.connection import SessionLocal
-from backend.memory_engine.models import (
-    EnhancedMemory, MemoryTag, MemoryRelationship,
-    MemoryTimelineEvent, MEMORY_CATEGORIES, MEMORY_TYPES
-)
-from backend.memory_engine.embeddings import embedding_service, tfidf_similarity
 from backend.memory_engine.cache import cache
+from backend.memory_engine.embeddings import embedding_service, tfidf_similarity
+from backend.memory_engine.models import (
+    EnhancedMemory,
+    MemoryTag,
+    MemoryTimelineEvent,
+)
 from backend.utils.logger import logger
 
 # ChromaDB collection name for Phase 3
@@ -35,12 +35,14 @@ CHROMA_COLLECTION = "novax_neural_memory_v3"
 def _get_chroma_collection():
     """Lazily get ChromaDB collection; returns None if unavailable."""
     try:
-        import chromadb, os
+        import os
+
+        import chromadb
+
         chroma_dir = os.getenv("CHROMA_DB_DIR", "./memory/chroma_storage")
         client = chromadb.PersistentClient(path=chroma_dir)
         return client.get_or_create_collection(
-            name=CHROMA_COLLECTION,
-            metadata={"hnsw:space": "cosine"}
+            name=CHROMA_COLLECTION, metadata={"hnsw:space": "cosine"}
         )
     except Exception as e:
         logger.warning(f"[NeuralMemory] ChromaDB unavailable: {e}")
@@ -50,15 +52,47 @@ def _get_chroma_collection():
 # ── Importance Scoring ─────────────────────────────────────────────────────────
 
 _IMPORTANCE_KEYWORDS = {
-    "deadline", "interview", "meeting", "project", "critical", "urgent",
-    "important", "password", "api key", "token", "secret", "deployment",
-    "production", "launch", "exam", "assessment", "goal", "milestone",
-    "never forget", "remember", "always", "must", "key", "essential"
+    "deadline",
+    "interview",
+    "meeting",
+    "project",
+    "critical",
+    "urgent",
+    "important",
+    "password",
+    "api key",
+    "token",
+    "secret",
+    "deployment",
+    "production",
+    "launch",
+    "exam",
+    "assessment",
+    "goal",
+    "milestone",
+    "never forget",
+    "remember",
+    "always",
+    "must",
+    "key",
+    "essential",
 }
 
 _GREETING_PATTERNS = {
-    "hello", "hi", "hey", "good morning", "good evening", "how are you",
-    "what's up", "bye", "goodbye", "thanks", "thank you", "ok", "okay", "sure"
+    "hello",
+    "hi",
+    "hey",
+    "good morning",
+    "good evening",
+    "how are you",
+    "what's up",
+    "bye",
+    "goodbye",
+    "thanks",
+    "thank you",
+    "ok",
+    "okay",
+    "sure",
 }
 
 
@@ -81,16 +115,25 @@ def compute_importance(content: str, memory_type: str, category: str) -> float:
 
     # Type boosts
     type_boosts = {
-        "episodic": 10, "project": 15, "preference": 8,
-        "coding": 12, "document": 10, "skill": 12,
+        "episodic": 10,
+        "project": 15,
+        "preference": 8,
+        "coding": 12,
+        "document": 10,
+        "skill": 12,
         "short_term": -10,  # short-term starts lower
     }
     score += type_boosts.get(memory_type, 0)
 
     # Category boosts
     cat_boosts = {
-        "career": 15, "goals": 15, "projects": 12, "placement": 15,
-        "health": 10, "programming": 10, "education": 8,
+        "career": 15,
+        "goals": 15,
+        "projects": 12,
+        "placement": 15,
+        "health": 10,
+        "programming": 10,
+        "education": 8,
     }
     score += cat_boosts.get(category, 0)
 
@@ -116,11 +159,13 @@ def _is_meaningful(content: str) -> bool:
 
 # ── Duplicate Detection ────────────────────────────────────────────────────────
 
+
 def _similarity_threshold() -> float:
     return 0.92  # memories above this similarity are considered duplicates
 
 
 # ── Neural Memory Engine ───────────────────────────────────────────────────────
+
 
 class NeuralMemoryEngine:
 
@@ -183,13 +228,15 @@ class NeuralMemoryEngine:
                     chroma.add(
                         documents=[content],
                         embeddings=[vector] if any(v != 0.0 for v in vector) else None,
-                        metadatas=[{
-                            "user_id": str(user_id),
-                            "memory_type": memory_type,
-                            "category": category,
-                            "source": source,
-                        }],
-                        ids=[embedding_id]
+                        metadatas=[
+                            {
+                                "user_id": str(user_id),
+                                "memory_type": memory_type,
+                                "category": category,
+                                "source": source,
+                            }
+                        ],
+                        ids=[embedding_id],
                     )
                 except Exception as e:
                     logger.warning(f"[NeuralMemory] ChromaDB add failed: {e}")
@@ -225,18 +272,22 @@ class NeuralMemoryEngine:
                         db.add(MemoryTag(memory_id=mem_id, tag=t))
 
             # Timeline event
-            db.add(MemoryTimelineEvent(
-                user_id=user_id,
-                memory_id=mem_id,
-                event_type="memory_created",
-                title=f"New {category} memory",
-                description=content[:100],
-                category=category,
-            ))
+            db.add(
+                MemoryTimelineEvent(
+                    user_id=user_id,
+                    memory_id=mem_id,
+                    event_type="memory_created",
+                    title=f"New {category} memory",
+                    description=content[:100],
+                    category=category,
+                )
+            )
 
             db.commit()
             await cache.invalidate_prefix(f"memories:{user_id}:")
-            logger.info(f"[NeuralMemory] Stored memory {mem_id} (importance={importance:.0f}, provider={provider})")
+            logger.info(
+                f"[NeuralMemory] Stored memory {mem_id} (importance={importance:.0f}, provider={provider})"
+            )
 
             return {
                 "id": mem_id,
@@ -258,7 +309,9 @@ class NeuralMemoryEngine:
 
     # ── Duplicate Detection ────────────────────────────────────────────────────
 
-    async def _find_duplicates(self, content: str, user_id: int, db: Session) -> List[EnhancedMemory]:
+    async def _find_duplicates(
+        self, content: str, user_id: int, db: Session
+    ) -> List[EnhancedMemory]:
         """Return existing memories with similarity above threshold."""
         recent = (
             db.query(EnhancedMemory)
@@ -289,10 +342,11 @@ class NeuralMemoryEngine:
     async def reinforce_by_id(self, memory_id: str, user_id: int) -> bool:
         db = SessionLocal()
         try:
-            mem = db.query(EnhancedMemory).filter(
-                EnhancedMemory.id == memory_id,
-                EnhancedMemory.user_id == user_id
-            ).first()
+            mem = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id)
+                .first()
+            )
             if mem:
                 await self._reinforce(mem, db)
                 return True
@@ -343,11 +397,14 @@ class NeuralMemoryEngine:
             # Tag filter
             if tags:
                 from sqlalchemy import exists
+
                 for tag in tags:
                     q = q.filter(
-                        exists().where(
+                        exists()
+                        .where(
                             MemoryTag.memory_id == EnhancedMemory.id,
-                        ).where(MemoryTag.tag == tag.lower())
+                        )
+                        .where(MemoryTag.tag == tag.lower())
                     )
 
             candidates = q.order_by(EnhancedMemory.importance_score.desc()).limit(500).all()
@@ -382,7 +439,7 @@ class NeuralMemoryEngine:
                 ranked = sorted(
                     zip(candidates, scores),
                     key=lambda x: x[1] * 0.5 + (x[0].importance_score / 100.0) * 0.5,
-                    reverse=True
+                    reverse=True,
                 )
                 candidates = [m for m, s in ranked if s > 0.05 or m.importance_score >= 70][:limit]
             else:
@@ -458,18 +515,25 @@ class NeuralMemoryEngine:
             return cached
         db = SessionLocal()
         try:
-            total = db.query(EnhancedMemory).filter(
-                EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == False
-            ).count()
-            pinned = db.query(EnhancedMemory).filter(
-                EnhancedMemory.user_id == user_id, EnhancedMemory.is_pinned == True
-            ).count()
-            archived = db.query(EnhancedMemory).filter(
-                EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == True
-            ).count()
+            total = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == False)
+                .count()
+            )
+            pinned = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.user_id == user_id, EnhancedMemory.is_pinned == True)
+                .count()
+            )
+            archived = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == True)
+                .count()
+            )
 
             # Category breakdown
             from sqlalchemy import func
+
             cat_rows = (
                 db.query(EnhancedMemory.category, func.count(EnhancedMemory.id))
                 .filter(EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == False)
@@ -488,9 +552,12 @@ class NeuralMemoryEngine:
             types = {row[0]: row[1] for row in type_rows}
 
             # Average importance
-            avg_imp = db.query(func.avg(EnhancedMemory.importance_score)).filter(
-                EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == False
-            ).scalar() or 0.0
+            avg_imp = (
+                db.query(func.avg(EnhancedMemory.importance_score))
+                .filter(EnhancedMemory.user_id == user_id, EnhancedMemory.is_archived == False)
+                .scalar()
+                or 0.0
+            )
 
             # Top memories
             top = (
@@ -508,7 +575,10 @@ class NeuralMemoryEngine:
                 "types": types,
                 "avg_importance": round(avg_imp, 1),
                 "health_score": min(100, total * 2),  # crude health proxy
-                "top_memories": [{"id": m.id, "content": m.content[:80], "importance": m.importance_score} for m in top],
+                "top_memories": [
+                    {"id": m.id, "content": m.content[:80], "importance": m.importance_score}
+                    for m in top
+                ],
                 "embedding_provider": embedding_service.provider or "tfidf-fallback",
             }
             await cache.set(cache_key, stats, ttl=300)
@@ -521,9 +591,11 @@ class NeuralMemoryEngine:
     async def pin_memory(self, memory_id: str, user_id: int) -> bool:
         db = SessionLocal()
         try:
-            mem = db.query(EnhancedMemory).filter(
-                EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id
-            ).first()
+            mem = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id)
+                .first()
+            )
             if not mem:
                 return False
             mem.is_pinned = not mem.is_pinned
@@ -536,9 +608,11 @@ class NeuralMemoryEngine:
     async def archive_memory(self, memory_id: str, user_id: int) -> bool:
         db = SessionLocal()
         try:
-            mem = db.query(EnhancedMemory).filter(
-                EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id
-            ).first()
+            mem = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id)
+                .first()
+            )
             if not mem:
                 return False
             mem.is_archived = not mem.is_archived
@@ -548,12 +622,16 @@ class NeuralMemoryEngine:
         finally:
             db.close()
 
-    async def update_memory(self, memory_id: str, user_id: int, updates: Dict[str, Any]) -> Optional[Dict]:
+    async def update_memory(
+        self, memory_id: str, user_id: int, updates: Dict[str, Any]
+    ) -> Optional[Dict]:
         db = SessionLocal()
         try:
-            mem = db.query(EnhancedMemory).filter(
-                EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id
-            ).first()
+            mem = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id)
+                .first()
+            )
             if not mem:
                 return None
             for field in ["content", "category", "memory_type", "importance_score", "project_name"]:
@@ -572,9 +650,11 @@ class NeuralMemoryEngine:
     async def delete_memory(self, memory_id: str, user_id: int) -> bool:
         db = SessionLocal()
         try:
-            mem = db.query(EnhancedMemory).filter(
-                EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id
-            ).first()
+            mem = (
+                db.query(EnhancedMemory)
+                .filter(EnhancedMemory.id == memory_id, EnhancedMemory.user_id == user_id)
+                .first()
+            )
             if not mem:
                 return False
             # Remove from ChromaDB
@@ -583,7 +663,9 @@ class NeuralMemoryEngine:
                 try:
                     chroma.delete(ids=[mem.embedding_id])
                 except Exception:
-                    pass
+                    import logging
+
+                    logging.getLogger(__name__).info("Function executed")
             db.delete(mem)
             db.commit()
             await cache.invalidate_prefix(f"memories:{user_id}:")
@@ -616,7 +698,7 @@ class NeuralMemoryEngine:
                     days_since = (datetime.utcnow() - m.last_accessed).days
                 else:
                     days_since = (datetime.utcnow() - m.created_at).days
-                decay = 0.99 ** days_since  # 1% decay per day
+                decay = 0.99**days_since  # 1% decay per day
                 m.importance_score = max(0.0, m.importance_score * decay)
                 m.decay_factor = decay
                 count += 1

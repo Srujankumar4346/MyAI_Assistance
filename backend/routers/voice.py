@@ -1,35 +1,36 @@
 """
 Voice Router — REST + WebSocket endpoints for Phase 2 Voice AI.
 """
+
+import base64
 import re
 import uuid
-import base64
-import asyncio
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.responses import Response
-from sqlalchemy.orm import Session
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
-from backend.database.models import User, VoiceSession, VoiceSettings as VoiceSettingsModel
+from backend.database.models import User, VoiceSession
+from backend.database.models import VoiceSettings as VoiceSettingsModel
 from backend.security.auth import get_current_user
+from backend.services.ollama_service import ollama_service
 from backend.services.tts_service import (
-    synthesize_speech,
-    synthesize_speech_stream,
     get_available_voices,
-    speed_to_rate,
     pitch_to_hz,
+    speed_to_rate,
+    synthesize_speech,
 )
 from backend.services.websocket_manager import voice_manager
-from backend.services.ollama_service import ollama_service
 from backend.utils.logger import logger
 
 router = APIRouter(prefix="/voice", tags=["Voice"])
 
 
 # ─── Pydantic Schemas ─────────────────────────────────────────────────────────
+
 
 class VoiceSettingsSchema(BaseModel):
     voice_name: str = "en-US-AriaNeural"
@@ -41,11 +42,13 @@ class VoiceSettingsSchema(BaseModel):
     noise_reduction: bool = True
     auto_detect_silence: bool = True
 
+
 class SpeakRequest(BaseModel):
     text: str
     voice: Optional[str] = "en-US-AriaNeural"
     speed: Optional[float] = 1.0
     pitch: Optional[float] = 1.0
+
 
 class VoiceSessionSchema(BaseModel):
     id: str
@@ -63,6 +66,7 @@ class VoiceSessionSchema(BaseModel):
 
 # ─── Helper ───────────────────────────────────────────────────────────────────
 
+
 def get_or_create_voice_settings(db: Session, user_id: int) -> VoiceSettingsModel:
     vs = db.query(VoiceSettingsModel).filter(VoiceSettingsModel.user_id == user_id).first()
     if not vs:
@@ -75,6 +79,7 @@ def get_or_create_voice_settings(db: Session, user_id: int) -> VoiceSettingsMode
 
 # ─── REST Endpoints ───────────────────────────────────────────────────────────
 
+
 @router.get("/voices")
 def list_voices(current_user: User = Depends(get_current_user)):
     """Return available TTS voices."""
@@ -83,8 +88,7 @@ def list_voices(current_user: User = Depends(get_current_user)):
 
 @router.get("/settings", response_model=VoiceSettingsSchema)
 def get_voice_settings(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     vs = get_or_create_voice_settings(db, current_user.id)
     return vs
@@ -94,7 +98,7 @@ def get_voice_settings(
 def update_voice_settings(
     payload: VoiceSettingsSchema,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     vs = get_or_create_voice_settings(db, current_user.id)
     vs.voice_name = payload.voice_name
@@ -111,10 +115,7 @@ def update_voice_settings(
 
 
 @router.post("/speak")
-async def speak(
-    payload: SpeakRequest,
-    current_user: User = Depends(get_current_user)
-):
+async def speak(payload: SpeakRequest, current_user: User = Depends(get_current_user)):
     """Convert text to speech. Returns MP3 audio as base64 JSON."""
     if not payload.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
@@ -134,8 +135,7 @@ async def speak(
 
 @router.get("/history", response_model=List[VoiceSessionSchema])
 def get_voice_history(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     sessions = (
         db.query(VoiceSession)
@@ -149,8 +149,7 @@ def get_voice_history(
 
 @router.delete("/history")
 def clear_voice_history(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     db.query(VoiceSession).filter(VoiceSession.user_id == current_user.id).delete()
     db.commit()
@@ -158,6 +157,7 @@ def clear_voice_history(
 
 
 # ─── WebSocket Endpoint ───────────────────────────────────────────────────────
+
 
 @router.websocket("/ws")
 async def voice_websocket(
@@ -178,6 +178,7 @@ async def voice_websocket(
     """
     # Authenticate via token query param
     from backend.security.auth import decode_token
+
     user = decode_token(token, db)
     if not user:
         await websocket.close(code=4001)
@@ -229,7 +230,7 @@ async def voice_websocket(
 
                     # Check for completed sentences to synthesize speech in real-time
                     while True:
-                        match = re.search(r'([.!?\n])\s+', sentence_buffer)
+                        match = re.search(r"([.!?\n])\s+", sentence_buffer)
                         if not match:
                             break
                         end_idx = match.end()
@@ -243,20 +244,24 @@ async def voice_websocket(
                                 )
                                 if audio_bytes:
                                     encoded = base64.b64encode(audio_bytes).decode("utf-8")
-                                    await websocket.send_json({
-                                        "type": "audio_chunk",
-                                        "data": encoded,
-                                        "mime": "audio/mpeg"
-                                    })
+                                    await websocket.send_json(
+                                        {
+                                            "type": "audio_chunk",
+                                            "data": encoded,
+                                            "mime": "audio/mpeg",
+                                        }
+                                    )
                             except Exception as e:
                                 logger.warning(f"Sentence TTS error: {e}")
 
             except Exception as e:
                 logger.error(f"Voice AI stream error: {e}")
-                await websocket.send_json({
-                    "type": "error",
-                    "message": "AI service unavailable. Ensure Ollama is running."
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "message": "AI service unavailable. Ensure Ollama is running.",
+                    }
+                )
                 continue
 
             # Synthesize speech for any remaining trailing text
@@ -267,11 +272,9 @@ async def voice_websocket(
                     )
                     if audio_bytes:
                         encoded = base64.b64encode(audio_bytes).decode("utf-8")
-                        await websocket.send_json({
-                            "type": "audio_chunk",
-                            "data": encoded,
-                            "mime": "audio/mpeg"
-                        })
+                        await websocket.send_json(
+                            {"type": "audio_chunk", "data": encoded, "mime": "audio/mpeg"}
+                        )
                 except Exception as e:
                     logger.warning(f"Remaining TTS error: {e}")
 

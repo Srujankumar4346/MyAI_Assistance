@@ -14,10 +14,12 @@ Context includes:
 
 Designed to be fast: results are cached per-user for 30 seconds.
 """
-from typing import List, Dict, Any, Optional
-from backend.memory_engine.neural_memory import neural_memory
-from backend.memory_engine.learning import learning_engine
+
+from typing import List
+
 from backend.memory_engine.cache import cache
+from backend.memory_engine.learning import learning_engine
+from backend.memory_engine.neural_memory import neural_memory
 from backend.utils.logger import logger
 
 
@@ -42,7 +44,9 @@ class ContextEngine:
             if profile.get("primary_language"):
                 profile_parts.append(f"Primary language: {profile['primary_language']}")
             if profile.get("preferred_frameworks"):
-                profile_parts.append(f"Preferred frameworks: {', '.join(profile['preferred_frameworks'][:4])}")
+                profile_parts.append(
+                    f"Preferred frameworks: {', '.join(profile['preferred_frameworks'][:4])}"
+                )
             if profile.get("coding_style"):
                 profile_parts.append(f"Coding style: {profile['coding_style']}")
             if profile.get("reply_style"):

@@ -28,7 +28,7 @@ export const BrowserStatusWidget: React.FC = React.memo(() => {
       workspace: 'Personal',
       activeSession: null,
       healthScore: 100,
-      features: { research: true, forms: true }
+      features: { research: true, forms: true },
     });
     setIsLoading(false);
   }, []);
@@ -39,18 +39,22 @@ export const BrowserStatusWidget: React.FC = React.memo(() => {
     const unsubscribe = subscribe('browser.health', (event: BrowserEvent) => {
       // Update state when live health events come in
       if (event.event_type === 'HEALTH_UPDATE') {
-        setStatus(prev => prev ? { ...prev, ...event.payload } : event.payload);
+        setStatus((prev) => (prev ? { ...prev, ...event.payload } : event.payload));
       }
     });
     return () => unsubscribe();
   }, [isConnected, subscribe]);
 
   if (isLoading) {
-    return <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">Loading Browser Status...</div>;
+    return (
+      <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">
+        Loading Browser Status...
+      </div>
+    );
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="p-6 bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl flex flex-col gap-4"
@@ -79,11 +83,15 @@ export const BrowserStatusWidget: React.FC = React.memo(() => {
           <span className="text-gray-200 font-mono">{status?.state}</span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">Workspace</span>
+          <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">
+            Workspace
+          </span>
           <span className="text-gray-200 font-mono">{status?.workspace}</span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">Health Score</span>
+          <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">
+            Health Score
+          </span>
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-green-400" />
             <span className="text-green-400 font-bold">{status?.healthScore}%</span>

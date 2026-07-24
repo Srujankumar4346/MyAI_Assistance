@@ -6,21 +6,23 @@ Priority chain:
   2. pyttsx3   (system TTS — fully offline, no internet required)
   3. Silent    (returns None — frontend uses Web Speech Synthesis API)
 """
+
 import asyncio
 import io
 import os
 from typing import AsyncGenerator, Optional
+
 from backend.utils.logger import logger
 
 # ── Available edge-tts voices (subset) ────────────────────────────────────────
 AVAILABLE_VOICES = [
-    {"id": "en-US-AriaNeural",    "name": "Aria (US Female)",    "lang": "en-US"},
-    {"id": "en-US-GuyNeural",     "name": "Guy (US Male)",       "lang": "en-US"},
-    {"id": "en-US-JennyNeural",   "name": "Jenny (US Female)",   "lang": "en-US"},
-    {"id": "en-GB-SoniaNeural",   "name": "Sonia (UK Female)",   "lang": "en-GB"},
-    {"id": "en-GB-RyanNeural",    "name": "Ryan (UK Male)",      "lang": "en-GB"},
+    {"id": "en-US-AriaNeural", "name": "Aria (US Female)", "lang": "en-US"},
+    {"id": "en-US-GuyNeural", "name": "Guy (US Male)", "lang": "en-US"},
+    {"id": "en-US-JennyNeural", "name": "Jenny (US Female)", "lang": "en-US"},
+    {"id": "en-GB-SoniaNeural", "name": "Sonia (UK Female)", "lang": "en-GB"},
+    {"id": "en-GB-RyanNeural", "name": "Ryan (UK Male)", "lang": "en-GB"},
     {"id": "en-AU-NatashaNeural", "name": "Natasha (AU Female)", "lang": "en-AU"},
-    {"id": "en-IN-NeerjaNeural",  "name": "Neerja (IN Female)",  "lang": "en-IN"},
+    {"id": "en-IN-NeerjaNeural", "name": "Neerja (IN Female)", "lang": "en-IN"},
 ]
 
 # Cache pyttsx3 availability so we don't attempt import every call
@@ -33,6 +35,7 @@ def _check_pyttsx3() -> bool:
         return _pyttsx3_available
     try:
         import pyttsx3  # noqa: F401
+
         _pyttsx3_available = True
     except Exception:
         _pyttsx3_available = False
@@ -52,8 +55,10 @@ async def _synthesize_pyttsx3(text: str) -> Optional[bytes]:
 
     tmp_path = tempfile.mktemp(suffix=".wav")
     try:
+
         def _run():
             import pyttsx3
+
             engine = pyttsx3.init()
             engine.setProperty("rate", 175)
             engine.save_to_file(text, tmp_path)
@@ -94,6 +99,7 @@ async def synthesize_speech(
     # ── 1. Try edge-tts (internet-based, high quality) ────────────────────────
     try:
         import edge_tts
+
         communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch, volume=volume)
         audio_buffer = io.BytesIO()
         async for chunk in communicate.stream():
@@ -137,13 +143,16 @@ async def synthesize_speech_stream(
     # Try edge-tts streaming first
     try:
         import edge_tts
+
         communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 yield chunk["data"]
         return
     except ImportError:
-        pass
+        import logging
+
+        logging.getLogger(__name__).info("Function executed")
     except Exception as e:
         logger.warning(f"[TTS] edge-tts stream failed: {e}")
 
@@ -157,6 +166,7 @@ async def synthesize_speech_stream(
 
 
 # ── Conversion helpers ─────────────────────────────────────────────────────────
+
 
 def speed_to_rate(speed: float) -> str:
     """Convert speed multiplier (0.5–2.0) → edge-tts rate string, e.g. '+20%'."""

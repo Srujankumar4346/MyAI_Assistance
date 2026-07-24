@@ -2,7 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { SystemMetrics } from '../types';
-import { Cpu, HardDrive, Zap, Brain, MessageSquare, Shield, Activity, Clock, ArrowRight } from 'lucide-react';
+import {
+  Cpu,
+  HardDrive,
+  Zap,
+  Brain,
+  MessageSquare,
+  Shield,
+  Activity,
+  Clock,
+  ArrowRight,
+} from 'lucide-react';
 
 interface HomeProps {
   selectedModel: string;
@@ -39,13 +49,19 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-mono mb-4">
-            <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> NOVA_X ARCHITECTURE ACTIVE
+            <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> NOVA_X ARCHITECTURE
+            ACTIVE
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-            Welcome back to <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-indigo-500 bg-clip-text text-transparent">NOVA_X OS</span>
+            Welcome back to{' '}
+            <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-indigo-500 bg-clip-text text-transparent">
+              NOVA_X OS
+            </span>
           </h1>
           <p className="text-slate-300 text-sm leading-relaxed">
-            Your personal artificial intelligence system foundation is online. Connected to local Ollama inference, long-term ChromaDB vector storage, and SQLite/PostgreSQL session persistence.
+            Your personal artificial intelligence system foundation is online. Connected to local
+            Ollama inference, long-term ChromaDB vector storage, and SQLite/PostgreSQL session
+            persistence.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-4">
@@ -53,7 +69,8 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
               onClick={() => navigate('/chat')}
               className="px-5 py-2.5 glow-button text-white rounded-xl font-medium text-sm flex items-center gap-2 cursor-pointer"
             >
-              <MessageSquare className="w-4 h-4" /> Open Chat Studio <ArrowRight className="w-4 h-4" />
+              <MessageSquare className="w-4 h-4" /> Open Chat Studio{' '}
+              <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => navigate('/memory')}
@@ -81,7 +98,9 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
             <span className="text-xs uppercase font-semibold text-slate-400">CPU Usage</span>
             <Cpu className="w-5 h-5 text-indigo-400" />
           </div>
-          <div className="text-xl font-bold text-white">{metrics ? `${metrics.cpu_usage_percent}%` : '---'}</div>
+          <div className="text-xl font-bold text-white">
+            {metrics ? `${metrics.cpu_usage_percent}%` : '---'}
+          </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
             <div
               className="bg-indigo-500 h-1.5 rounded-full transition-all duration-500"
@@ -126,15 +145,21 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
             <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5">
               <span className="text-xs text-slate-400 block">Host OS</span>
-              <span className="text-sm font-semibold text-slate-200">{metrics?.os || 'Windows'}</span>
+              <span className="text-sm font-semibold text-slate-200">
+                {metrics?.os || 'Windows'}
+              </span>
             </div>
             <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5">
               <span className="text-xs text-slate-400 block">Architecture</span>
-              <span className="text-sm font-semibold text-slate-200">{metrics?.architecture || 'x86_64'}</span>
+              <span className="text-sm font-semibold text-slate-200">
+                {metrics?.architecture || 'x86_64'}
+              </span>
             </div>
             <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5">
               <span className="text-xs text-slate-400 block">CPU Cores</span>
-              <span className="text-sm font-semibold text-slate-200">{metrics?.cpu_count || 4} Logical Cores</span>
+              <span className="text-sm font-semibold text-slate-200">
+                {metrics?.cpu_count || 4} Logical Cores
+              </span>
             </div>
             <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5">
               <span className="text-xs text-slate-400 block">Conversations</span>
@@ -146,7 +171,9 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
             </div>
             <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5">
               <span className="text-xs text-slate-400 block">Server Time</span>
-              <span className="text-xs font-mono text-cyan-300">{metrics?.server_time || '--:--:--'}</span>
+              <span className="text-xs font-mono text-cyan-300">
+                {metrics?.server_time || '--:--:--'}
+              </span>
             </div>
           </div>
         </div>
@@ -157,11 +184,26 @@ export const Home: React.FC<HomeProps> = ({ selectedModel }) => {
               <Clock className="w-5 h-5 text-cyan-400" /> Phase 1 Capabilities
             </h3>
             <ul className="space-y-2 text-xs text-slate-300">
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"/> Local Ollama Chat Streaming</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"/> JWT Protected API Backend</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"/> Long-Term Vector Memory (ChromaDB)</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"/> SQL Database Backed History & Settings</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"/> Desktop-First Futuristic UI</li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Local Ollama Chat
+                Streaming
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> JWT Protected API
+                Backend
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Long-Term Vector Memory
+                (ChromaDB)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> SQL Database Backed
+                History & Settings
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Desktop-First
+                Futuristic UI
+              </li>
             </ul>
           </div>
 

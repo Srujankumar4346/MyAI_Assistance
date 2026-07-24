@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Network, Search, Plus, RefreshCw, Link,
-  Cpu, AlertCircle, Layers
-} from 'lucide-react';
+import { Network, Search, Plus, RefreshCw, Link, Cpu, AlertCircle, Layers } from 'lucide-react';
 import { api } from '../api/client';
 import type { KnowledgeGraph as KGType, KnowledgeNode } from '../types';
 import { KnowledgeGraphView } from '../components/knowledge_graph/KnowledgeGraph';
@@ -45,14 +42,18 @@ export const Knowledge: React.FC = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchGraph(); }, []);
+  useEffect(() => {
+    fetchGraph();
+  }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     try {
       const res = await api.searchKnowledge(searchQuery);
       setSearchResults(res.nodes || []);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleNodeClick = async (node: KnowledgeNode) => {
@@ -60,7 +61,9 @@ export const Knowledge: React.FC = () => {
     try {
       const rel = await api.getNodeRelationships(node.id);
       setRelationships(rel);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleAddNode = async (e: React.FormEvent) => {
@@ -70,7 +73,8 @@ export const Knowledge: React.FC = () => {
     setError('');
     try {
       await api.addKnowledgeNode({ label: newLabel, node_type: newType, description: newDesc });
-      setNewLabel(''); setNewDesc('');
+      setNewLabel('');
+      setNewDesc('');
       setShowAddNode(false);
       await fetchGraph();
     } catch (err: any) {
@@ -87,10 +91,13 @@ export const Knowledge: React.FC = () => {
           <div className="flex items-center gap-2 text-violet-300 font-bold text-xl mb-1">
             <Network className="w-6 h-6 text-cyan-400" />
             Knowledge Graph
-            <span className="text-[10px] font-mono bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2 py-0.5 rounded-full ml-1">P3</span>
+            <span className="text-[10px] font-mono bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2 py-0.5 rounded-full ml-1">
+              P3
+            </span>
           </div>
           <p className="text-xs text-slate-400">
-            {graph.nodes.length} nodes · {graph.edges.length} edges — auto-built from your conversations
+            {graph.nodes.length} nodes · {graph.edges.length} edges — auto-built from your
+            conversations
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -101,7 +108,7 @@ export const Knowledge: React.FC = () => {
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
           <button
-            onClick={() => setShowAddNode(v => !v)}
+            onClick={() => setShowAddNode((v) => !v)}
             className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs rounded-xl flex items-center gap-1.5 font-medium cursor-pointer hover:opacity-90"
           >
             <Plus className="w-3.5 h-3.5" /> Add Node
@@ -124,28 +131,38 @@ export const Knowledge: React.FC = () => {
           )}
           <form onSubmit={handleAddNode} className="flex flex-wrap gap-3">
             <input
-              value={newLabel} onChange={e => setNewLabel(e.target.value)}
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
               placeholder="Label (e.g. React, FastAPI, NOVA_X)"
               className="glass-input px-3 py-2 rounded-xl text-sm flex-1 min-w-32"
             />
             <select
-              value={newType} onChange={e => setNewType(e.target.value)}
+              value={newType}
+              onChange={(e) => setNewType(e.target.value)}
               className="glass-input px-2 py-2 rounded-xl text-sm bg-slate-900 text-slate-200"
             >
-              {NODE_TYPES.map(t => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+              {NODE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
               ))}
             </select>
             <input
-              value={newDesc} onChange={e => setNewDesc(e.target.value)}
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
               placeholder="Description (optional)"
               className="glass-input px-3 py-2 rounded-xl text-sm flex-1 min-w-48"
             />
             <button
-              type="submit" disabled={addLoading || !newLabel.trim()}
+              type="submit"
+              disabled={addLoading || !newLabel.trim()}
               className="px-4 py-2 bg-violet-600 text-white text-sm rounded-xl disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
             >
-              {addLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              {addLoading ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Plus className="w-3.5 h-3.5" />
+              )}
               Add
             </button>
           </form>
@@ -176,8 +193,8 @@ export const Knowledge: React.FC = () => {
             <div className="flex gap-2">
               <input
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="node name..."
                 className="flex-1 glass-input px-2 py-1.5 rounded-lg text-xs"
               />
@@ -190,7 +207,7 @@ export const Knowledge: React.FC = () => {
             </div>
             {searchResults.length > 0 && (
               <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
-                {searchResults.map(n => (
+                {searchResults.map((n) => (
                   <button
                     key={n.id}
                     onClick={() => handleNodeClick(n)}
@@ -211,14 +228,14 @@ export const Knowledge: React.FC = () => {
               <span className="text-xs font-semibold text-slate-300">Node Types</span>
             </div>
             <div className="space-y-2">
-              {NODE_TYPES.map(t => (
+              {NODE_TYPES.map((t) => (
                 <div key={t.value} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ background: t.color }} />
                     <span className="text-xs text-slate-300">{t.label}</span>
                   </div>
                   <span className="text-[10px] text-slate-500 font-mono">
-                    {graph.nodes.filter(n => n.node_type === t.value).length}
+                    {graph.nodes.filter((n) => n.node_type === t.value).length}
                   </span>
                 </div>
               ))}
@@ -235,7 +252,9 @@ export const Knowledge: React.FC = () => {
               <div className="flex items-center gap-2 mb-3">
                 <Link className="w-4 h-4 text-cyan-400" />
                 <span className="text-xs font-bold text-white">{selectedNode.label}</span>
-                <span className="text-[10px] text-slate-400 capitalize">({selectedNode.node_type})</span>
+                <span className="text-[10px] text-slate-400 capitalize">
+                  ({selectedNode.node_type})
+                </span>
               </div>
               {relationships.outgoing?.length > 0 && (
                 <div className="mb-3">

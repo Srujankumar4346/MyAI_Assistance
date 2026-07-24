@@ -1,52 +1,93 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: novax_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
-      POSTGRES_DB: ${POSTGRES_DB:-novax_db}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   backend:
     build:
       context: .
-      dockerfile: docker/backend.Dockerfile
+      dockerfile: backend/Dockerfile
     container_name: novax_backend
-    restart: always
-    depends_on:
-      - db
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-novax_db}
-      - SECRET_KEY=${SECRET_KEY:-novax_super_secret_jwt_key_2026_change_in_production}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemma}
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - DATABASE_URL=postgresql://novax:novaxpass@postgres:5432/novax_db
+      - ENVIRONMENT=production
+      - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
-      - ./logs:/app/logs
-      - ./uploads:/app/uploads
+      - novax_logs:/app/data/logs
+      - novax_chroma:/app/data/chroma
+      - novax_uploads:/app/data/uploads
+      - novax_downloads:/app/data/downloads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - novax_network
+    profiles:
+      - core
+      - full
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: ../docker/frontend.Dockerfile
+      dockerfile: Dockerfile
     container_name: novax_frontend
-    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - novax_network
+    profiles:
+      - core
+      - full
     depends_on:
       - backend
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: novax_postgres
+    environment:
+      - POSTGRES_USER=novax
+      - POSTGRES_PASSWORD=novaxpass
+      - POSTGRES_DB=novax_db
     ports:
-      - "3000:80"
+      - "5432:5432"
+    volumes:
+      - novax_db_data:/var/lib/postgresql/data
+    networks:
+      - novax_network
+    profiles:
+      - core
+      - full
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U novax -d novax_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: novax_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - novax_ollama_data:/root/.ollama
+    networks:
+      - novax_network
+    profiles:
+      - ai
+      - full
+    restart: unless-stopped
+
+networks:
+  novax_network:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  novax_db_data:
+  novax_logs:
+  novax_chroma:
+  novax_uploads:
+  novax_downloads:
+  novax_ollama_data:

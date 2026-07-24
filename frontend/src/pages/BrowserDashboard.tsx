@@ -9,7 +9,16 @@ import { AutomationQueueWidget } from '../components/AutomationQueueWidget';
 import { BrowserHealthWidget } from '../components/BrowserHealthWidget';
 import { MemoryKnowledgeWidget } from '../components/MemoryKnowledgeWidget';
 import { ActivityTimelineWidget } from '../components/ActivityTimelineWidget';
-import { Search, Monitor, Bot, BrainCircuit, Activity, Globe, RefreshCcw, LayoutGrid } from 'lucide-react';
+import {
+  Search,
+  Monitor,
+  Bot,
+  BrainCircuit,
+  Activity,
+  Globe,
+  RefreshCcw,
+  LayoutGrid,
+} from 'lucide-react';
 
 export const BrowserDashboard: React.FC = () => {
   const [workspace, setWorkspace] = useState('Development');
@@ -22,32 +31,43 @@ export const BrowserDashboard: React.FC = () => {
     voice: 'connected',
     desktop: 'connected',
     memory: 'connected',
-    user: 'system_user'
+    user: 'system_user',
   });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     // In a real implementation, this would re-fetch the REST snapshots for all widgets
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
     setIsRefreshing(false);
   };
 
   return (
     <BrowserWebSocketProvider>
       <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-indigo-500/30">
-        
         {/* GLOBAL STATUS BAR */}
         <div className="h-8 bg-black border-b border-gray-800 flex items-center justify-between px-4 text-[10px] uppercase font-bold tracking-wider text-gray-400">
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5"><BrainCircuit className="w-3 h-3 text-pink-400"/> {globalStatus.aiModel}</span>
-            <span className="flex items-center gap-1.5"><Monitor className="w-3 h-3 text-blue-400"/> Desktop: {globalStatus.desktop}</span>
-            <span className="flex items-center gap-1.5"><Globe className="w-3 h-3 text-emerald-400"/> Browser: active</span>
-            <span className="flex items-center gap-1.5"><Bot className="w-3 h-3 text-orange-400"/> Voice: {globalStatus.voice}</span>
-            <span className="flex items-center gap-1.5"><Activity className="w-3 h-3 text-purple-400"/> Memory: {globalStatus.memory}</span>
+            <span className="flex items-center gap-1.5">
+              <BrainCircuit className="w-3 h-3 text-pink-400" /> {globalStatus.aiModel}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Monitor className="w-3 h-3 text-blue-400" /> Desktop: {globalStatus.desktop}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Globe className="w-3 h-3 text-emerald-400" /> Browser: active
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Bot className="w-3 h-3 text-orange-400" /> Voice: {globalStatus.voice}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Activity className="w-3 h-3 text-purple-400" /> Memory: {globalStatus.memory}
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <span>User: {globalStatus.user}</span>
-            <span>WS: <span className="text-emerald-400">Connected</span></span>
+            <span>
+              WS: <span className="text-emerald-400">Connected</span>
+            </span>
           </div>
         </div>
 
@@ -58,7 +78,9 @@ export const BrowserDashboard: React.FC = () => {
               <LayoutGrid className="w-5 h-5 text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-100 tracking-tight leading-tight">NOVA_X Mission Control</h1>
+              <h1 className="text-lg font-bold text-gray-100 tracking-tight leading-tight">
+                NOVA_X Mission Control
+              </h1>
               <p className="text-xs text-indigo-400 font-medium">Browser Engine v0.5.1</p>
             </div>
           </div>
@@ -67,9 +89,9 @@ export const BrowserDashboard: React.FC = () => {
             {/* Global Search */}
             <div className="relative group">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-400 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Global Search (Tabs, Events, Memory)..." 
+              <input
+                type="text"
+                placeholder="Global Search (Tabs, Events, Memory)..."
                 className="bg-gray-900 border border-gray-700 text-sm rounded-full pl-9 pr-4 py-1.5 w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-gray-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -77,7 +99,7 @@ export const BrowserDashboard: React.FC = () => {
             </div>
 
             {/* Workspace Selector */}
-            <select 
+            <select
               className="bg-gray-900 border border-gray-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 text-gray-200"
               value={workspace}
               onChange={(e) => setWorkspace(e.target.value)}
@@ -87,7 +109,7 @@ export const BrowserDashboard: React.FC = () => {
               <option value="Personal">Workspace: Personal</option>
             </select>
 
-            <button 
+            <button
               onClick={handleRefresh}
               className={`p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700 ${isRefreshing ? 'animate-spin' : ''}`}
               title="Refresh REST Snapshots"
@@ -100,7 +122,6 @@ export const BrowserDashboard: React.FC = () => {
         {/* WIDGET GRID */}
         <main className="flex-1 p-6 overflow-x-hidden">
           <div className="grid grid-cols-12 gap-6 max-w-[1920px] mx-auto">
-            
             {/* TOP ROW */}
             <div className="col-span-12 lg:col-span-4 h-[300px]">
               <BrowserStatusWidget />
@@ -133,7 +154,6 @@ export const BrowserDashboard: React.FC = () => {
             <div className="col-span-12 xl:col-span-4 h-[400px]">
               <ActivityTimelineWidget />
             </div>
-
           </div>
         </main>
       </div>

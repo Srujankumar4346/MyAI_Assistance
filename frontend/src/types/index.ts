@@ -1,6 +1,7 @@
 // Phase 3 — Extended Types for Neural Memory Engine
 
-export type NavTab = 'home' | 'chat' | 'memory' | 'settings' | 'logs' | 'about' | 'knowledge' | 'learning';
+export type NavTab =
+  'home' | 'chat' | 'memory' | 'settings' | 'logs' | 'about' | 'knowledge' | 'learning';
 
 export interface User {
   username: string;

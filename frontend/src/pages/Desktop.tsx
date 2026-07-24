@@ -5,27 +5,27 @@ import apiClient from '../api/client';
 export default function DesktopControlCenter() {
   const [apps, setApps] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
-  
+
   useEffect(() => {
     fetchApps();
     fetchLogs();
     const interval = setInterval(fetchApps, 10000);
     return () => clearInterval(interval);
   }, []);
-  
+
   const fetchApps = async () => {
     try {
       const res = await apiClient.post('/desktop/execute', {
         action_type: 'list_apps',
         target: 'system',
-        level: 'SAFE'
+        level: 'SAFE',
       });
       if (res.result) setApps(res.result);
     } catch (err) {
       console.error(err);
     }
   };
-  
+
   const fetchLogs = async () => {
     try {
       const res = await apiClient.get('/desktop/logs');
@@ -41,7 +41,7 @@ export default function DesktopControlCenter() {
         action_type: 'close_app',
         target: appName,
         level: 'HIGH',
-        params: { process_name: appName }
+        params: { process_name: appName },
       });
       fetchApps();
     } catch (err) {
@@ -61,7 +61,7 @@ export default function DesktopControlCenter() {
           <span className="text-sm font-semibold">Active Engine</span>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Applications */}
         <div className="bg-slate-800/80 rounded-xl border border-slate-700/50 flex flex-col h-[500px]">
@@ -70,11 +70,16 @@ export default function DesktopControlCenter() {
               <AppWindow className="w-5 h-5 text-cyan-400" />
               Running Applications
             </h2>
-            <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs">{apps.length} active</span>
+            <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs">
+              {apps.length} active
+            </span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {apps.map((app, i) => (
-              <div key={i} className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/30 flex items-center justify-between group">
+              <div
+                key={i}
+                className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/30 flex items-center justify-between group"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 font-bold">
                     {app.name.charAt(0).toUpperCase()}
@@ -84,7 +89,7 @@ export default function DesktopControlCenter() {
                     <p className="text-slate-500 text-xs">PID: {app.pid}</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => handleClose(app.name)}
                   className="opacity-0 group-hover:opacity-100 p-2 text-rose-400 hover:bg-rose-400/20 rounded-lg transition-all"
                 >
@@ -108,13 +113,21 @@ export default function DesktopControlCenter() {
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {logs.map((log) => (
-              <div key={log.id} className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/30">
+              <div
+                key={log.id}
+                className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/30"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-indigo-300 text-sm font-mono">{log.action_type}</span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    log.status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 
-                    log.status === 'blocked' ? 'bg-orange-500/20 text-orange-400' : 'bg-rose-500/20 text-rose-400'
-                  }`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      log.status === 'success'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : log.status === 'blocked'
+                          ? 'bg-orange-500/20 text-orange-400'
+                          : 'bg-rose-500/20 text-rose-400'
+                    }`}
+                  >
                     {log.status.toUpperCase()}
                   </span>
                 </div>

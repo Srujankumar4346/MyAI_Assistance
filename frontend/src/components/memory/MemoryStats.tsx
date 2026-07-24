@@ -34,15 +34,21 @@ export const MemoryStatsBar: React.FC<MemoryStatsProps> = ({ stats, loading }) =
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="glass-panel rounded-2xl border border-white/8 p-4 h-20 animate-pulse bg-slate-800/40" />
+          <div
+            key={i}
+            className="glass-panel rounded-2xl border border-white/8 p-4 h-20 animate-pulse bg-slate-800/40"
+          />
         ))}
       </div>
     );
   }
 
   const healthColor =
-    stats.health_score >= 80 ? 'text-emerald-400' :
-    stats.health_score >= 50 ? 'text-amber-400' : 'text-red-400';
+    stats.health_score >= 80
+      ? 'text-emerald-400'
+      : stats.health_score >= 50
+        ? 'text-amber-400'
+        : 'text-red-400';
 
   return (
     <div className="space-y-4">
@@ -88,7 +94,10 @@ export const MemoryStatsBar: React.FC<MemoryStatsProps> = ({ stats, loading }) =
             {Object.entries(stats.categories)
               .sort(([, a], [, b]) => b - a)
               .map(([cat, count]) => (
-                <div key={cat} className="flex items-center gap-1.5 bg-slate-800/60 px-3 py-1.5 rounded-xl border border-white/5">
+                <div
+                  key={cat}
+                  className="flex items-center gap-1.5 bg-slate-800/60 px-3 py-1.5 rounded-xl border border-white/5"
+                >
                   <span className="text-xs text-slate-300 capitalize">{cat}</span>
                   <span className="text-xs font-bold text-cyan-400">{count}</span>
                 </div>

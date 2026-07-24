@@ -35,7 +35,7 @@ interface ProviderProps {
 export const BrowserWebSocketProvider: React.FC<ProviderProps> = ({ children, token }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const wsRef = useRef<WebSocket | null>(null);
   const subscribersRef = useRef<Map<string, Set<(e: BrowserEvent) => void>>>(new Map());
 
@@ -44,10 +44,10 @@ export const BrowserWebSocketProvider: React.FC<ProviderProps> = ({ children, to
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     // Use hardcoded backend port for local dev
     const wsUrl = `${protocol}//localhost:8000/ws/browser?token=${token}`;
-    
+
     const connect = () => {
       const ws = new WebSocket(wsUrl);
-      
+
       ws.onopen = () => {
         setIsConnected(true);
         setError(null);
@@ -57,27 +57,28 @@ export const BrowserWebSocketProvider: React.FC<ProviderProps> = ({ children, to
           ws.send(JSON.stringify({ action: 'subscribe', channels: activeChannels }));
         }
       };
-      
+
       ws.onmessage = (event) => {
         try {
           const data: BrowserEvent = JSON.parse(event.data);
           const channelSubs = subscribersRef.current.get(data.channel);
           if (channelSubs) {
-            channelSubs.forEach(cb => cb(data));
+            channelSubs.forEach((cb) => cb(data));
           }
         } catch (err) {
-          console.error("Failed to parse WebSocket message", err);
+          console.error('Failed to parse WebSocket message', err);
         }
       };
-      
+
       ws.onclose = () => {
         setIsConnected(false);
         // Simple reconnect logic (in prod we'd want exponential backoff)
-        setTimeout(connect, 3000);
+        const backoff = Math.min(30000, 1000 * Math.pow(2, Math.floor(Math.random() * 5)) + Math.random() * 1000);
+        setTimeout(connect, backoff);
       };
-      
+
       ws.onerror = () => {
-        setError("WebSocket connection failed.");
+        setError('WebSocket connection failed.');
       };
 
       wsRef.current = ws;
@@ -103,7 +104,7 @@ export const BrowserWebSocketProvider: React.FC<ProviderProps> = ({ children, to
       }
     }
     subs.add(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const currentSubs = subscribersRef.current.get(channel);

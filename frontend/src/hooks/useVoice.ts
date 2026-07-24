@@ -56,10 +56,7 @@ const WS_URL = (() => {
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000, 30000];
 
 // ── Noise reduction pipeline ──────────────────────────────────────────────────
-function buildNoisePipeline(
-  ctx: AudioContext,
-  source: MediaStreamAudioSourceNode
-): AudioNode {
+function buildNoisePipeline(ctx: AudioContext, source: MediaStreamAudioSourceNode): AudioNode {
   // High-pass filter — removes low-frequency rumble/hum below 100 Hz
   const highPass = ctx.createBiquadFilter();
   highPass.type = 'highpass';
@@ -126,10 +123,13 @@ export function useVoice(options: UseVoiceOptions = {}) {
   const isPlayingAudioRef = useRef<boolean>(false);
   const isDoneReceivedRef = useRef<boolean>(false);
 
-  const setState = useCallback((s: VoiceState) => {
-    setVoiceState(s);
-    onStateChange?.(s);
-  }, [onStateChange]);
+  const setState = useCallback(
+    (s: VoiceState) => {
+      setVoiceState(s);
+      onStateChange?.(s);
+    },
+    [onStateChange]
+  );
 
   // ── Audio queue playback ───────────────────────────────────────────────────
   const playNextAudioSegment = useCallback(() => {
@@ -167,75 +167,84 @@ export function useVoice(options: UseVoiceOptions = {}) {
   }, [setState, speakerDeviceId]);
 
   // ── WebSocket message handler ──────────────────────────────────────────────
-  const handleWSMessage = useCallback((data: Record<string, unknown>) => {
-    switch (data.type) {
-      case 'thinking':
-        setState('thinking');
-        aiTextRef.current = '';
-        setAiText('');
-        audioRef.current?.pause();
-        audioQueueRef.current.forEach(u => URL.revokeObjectURL(u));
-        audioQueueRef.current = [];
-        isPlayingAudioRef.current = false;
-        isDoneReceivedRef.current = false;
-        startTimeRef.current = Date.now();
-        break;
+  const handleWSMessage = useCallback(
+    (data: Record<string, unknown>) => {
+      switch (data.type) {
+        case 'thinking':
+          setState('thinking');
+          aiTextRef.current = '';
+          setAiText('');
+          audioRef.current?.pause();
+          audioQueueRef.current.forEach((u) => URL.revokeObjectURL(u));
+          audioQueueRef.current = [];
+          isPlayingAudioRef.current = false;
+          isDoneReceivedRef.current = false;
+          startTimeRef.current = Date.now();
+          break;
 
-      case 'text_chunk': {
-        const chunk = data.content as string;
-        aiTextRef.current += chunk;
-        setAiText(aiTextRef.current);
-        break;
+        case 'text_chunk': {
+          const chunk = data.content as string;
+          aiTextRef.current += chunk;
+          setAiText(aiTextRef.current);
+          break;
+        }
+
+        case 'audio_chunk': {
+          const bytes = Uint8Array.from(atob(data.data as string), (c) => c.charCodeAt(0));
+          const blob = new Blob([bytes], { type: 'audio/mpeg' });
+          const url = URL.createObjectURL(blob);
+          audioQueueRef.current.push(url);
+          playNextAudioSegment();
+          break;
+        }
+
+        case 'tts_fallback': {
+          setState('speaking');
+          const utterance = new SpeechSynthesisUtterance(data.text as string);
+          utterance.onend = () => {
+            setState('idle');
+            if (continuousRef.current) startListeningRef.current();
+          };
+          window.speechSynthesis.speak(utterance);
+          break;
+        }
+
+        case 'done': {
+          const lat = Date.now() - startTimeRef.current;
+          setLatency(lat);
+          const finalText = aiTextRef.current;
+          setTranscript((prev) => [
+            ...prev,
+            {
+              id: (data.session_id as string) || crypto.randomUUID(),
+              role: 'assistant',
+              text: finalText,
+              timestamp: new Date(),
+            },
+          ]);
+          aiTextRef.current = '';
+          setAiText('');
+          isDoneReceivedRef.current = true;
+          playNextAudioSegment();
+          break;
+        }
+
+        case 'error':
+          setError(data.message as string);
+          setState('error');
+          setTimeout(() => {
+            setError(null);
+            setState('idle');
+          }, 3000);
+          break;
+
+        case 'pong':
+          // heartbeat acknowledged — no action needed
+          break;
       }
-
-      case 'audio_chunk': {
-        const bytes = Uint8Array.from(atob(data.data as string), c => c.charCodeAt(0));
-        const blob = new Blob([bytes], { type: 'audio/mpeg' });
-        const url = URL.createObjectURL(blob);
-        audioQueueRef.current.push(url);
-        playNextAudioSegment();
-        break;
-      }
-
-      case 'tts_fallback': {
-        setState('speaking');
-        const utterance = new SpeechSynthesisUtterance(data.text as string);
-        utterance.onend = () => {
-          setState('idle');
-          if (continuousRef.current) startListeningRef.current();
-        };
-        window.speechSynthesis.speak(utterance);
-        break;
-      }
-
-      case 'done': {
-        const lat = Date.now() - startTimeRef.current;
-        setLatency(lat);
-        const finalText = aiTextRef.current;
-        setTranscript(prev => [...prev, {
-          id: (data.session_id as string) || crypto.randomUUID(),
-          role: 'assistant',
-          text: finalText,
-          timestamp: new Date(),
-        }]);
-        aiTextRef.current = '';
-        setAiText('');
-        isDoneReceivedRef.current = true;
-        playNextAudioSegment();
-        break;
-      }
-
-      case 'error':
-        setError(data.message as string);
-        setState('error');
-        setTimeout(() => { setError(null); setState('idle'); }, 3000);
-        break;
-
-      case 'pong':
-        // heartbeat acknowledged — no action needed
-        break;
-    }
-  }, [setState, playNextAudioSegment]);
+    },
+    [setState, playNextAudioSegment]
+  );
 
   // ── WebSocket connection with exponential backoff ──────────────────────────
   const connectWS = useCallback(() => {
@@ -284,29 +293,42 @@ export function useVoice(options: UseVoiceOptions = {}) {
     ws.onerror = () => setIsConnected(false);
 
     ws.onmessage = (event: MessageEvent) => {
-      try { handleWSMessage(JSON.parse(event.data)); } catch { /* ignore */ }
+      try {
+        handleWSMessage(JSON.parse(event.data));
+      } catch {
+        /* ignore */
+      }
     };
   }, [handleWSMessage]);
 
   // ── Speech recognition with optional noise reduction ──────────────────────
-  const sendTranscript = useCallback((text: string, conf: number = 0) => {
-    setTranscript(prev => [...prev, {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text,
-      timestamp: new Date(),
-      confidence: Math.round(conf * 100),
-    }]);
-    setLiveText('');
+  const sendTranscript = useCallback(
+    (text: string, conf: number = 0) => {
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'user',
+          text,
+          timestamp: new Date(),
+          confidence: Math.round(conf * 100),
+        },
+      ]);
+      setLiveText('');
 
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'transcript', text, model, confidence: conf, language }));
-    } else {
-      setError('Not connected to voice server. Reconnecting…');
-      setState('error');
-      setTimeout(() => setState('idle'), 3000);
-    }
-  }, [model, language, setState]);
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({ type: 'transcript', text, model, confidence: conf, language })
+        );
+      } else {
+        setError('Not connected to voice server. Reconnecting…');
+        setState('error');
+        const backoff = Math.min(30000, 1000 * Math.pow(2, Math.floor(Math.random() * 5)) + Math.random() * 1000);
+        setTimeout(() => setState('idle'), backoff);
+      }
+    },
+    [model, language, setState]
+  );
 
   const startListeningFn = useCallback(async () => {
     const SR: AnyRecognition =
@@ -349,7 +371,9 @@ export function useVoice(options: UseVoiceOptions = {}) {
         recognitionRef.current.onerror = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.stop();
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     const recognition = new SR();
@@ -385,18 +409,23 @@ export function useVoice(options: UseVoiceOptions = {}) {
       } else {
         setError(`Speech error: ${e.error}`);
         setState('error');
-        setTimeout(() => { setError(null); setState('idle'); }, 3000);
+        setTimeout(() => {
+          setError(null);
+          setState('idle');
+        }, 3000);
       }
     };
 
     recognition.onend = () => {
-      setVoiceState(s => s === 'listening' ? 'idle' : s);
+      setVoiceState((s) => (s === 'listening' ? 'idle' : s));
     };
 
     recognition.start();
   }, [language, microphoneDeviceId, noiseReduction, setState, sendTranscript]);
 
-  useEffect(() => { startListeningRef.current = startListeningFn; }, [startListeningFn]);
+  useEffect(() => {
+    startListeningRef.current = startListeningFn;
+  }, [startListeningFn]);
 
   const stopListening = useCallback(() => {
     continuousRef.current = false;
@@ -408,7 +437,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
   const stopSpeaking = useCallback(() => {
     audioRef.current?.pause();
     window.speechSynthesis.cancel();
-    audioQueueRef.current.forEach(u => URL.revokeObjectURL(u));
+    audioQueueRef.current.forEach((u) => URL.revokeObjectURL(u));
     audioQueueRef.current = [];
     isPlayingAudioRef.current = false;
     isDoneReceivedRef.current = false;
@@ -436,7 +465,7 @@ export function useVoice(options: UseVoiceOptions = {}) {
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       recognitionRef.current?.stop();
-      micStreamRef.current?.getTracks().forEach(t => t.stop());
+      micStreamRef.current?.getTracks().forEach((t) => t.stop());
       audioCtxRef.current?.close();
     };
   }, [connectWS]);
@@ -469,7 +498,7 @@ export async function getAudioInputDevices(): Promise<AudioDevice[]> {
     await navigator.mediaDevices.getUserMedia({ audio: true });
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices
-      .filter(d => d.kind === 'audioinput')
+      .filter((d) => d.kind === 'audioinput')
       .map((d, i) => ({
         deviceId: d.deviceId,
         label: d.label || `Microphone ${i + 1}`,
@@ -483,7 +512,7 @@ export async function getAudioOutputDevices(): Promise<AudioDevice[]> {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices
-      .filter(d => d.kind === 'audiooutput')
+      .filter((d) => d.kind === 'audiooutput')
       .map((d, i) => ({
         deviceId: d.deviceId,
         label: d.label || `Speaker ${i + 1}`,

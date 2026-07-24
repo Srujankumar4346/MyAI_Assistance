@@ -13,13 +13,14 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
     handlers=[
         logging.FileHandler(log_filename, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout)
-    ]
+        logging.StreamHandler(sys.stdout),
+    ],
 )
 
 logger = logging.getLogger("NOVA_X")
 
 TELEMETRY_LOG_FILE = os.path.join(LOGS_DIR, "telemetry.jsonl")
+
 
 def log_telemetry(event_type: str, data: dict):
     """
@@ -27,11 +28,12 @@ def log_telemetry(event_type: str, data: dict):
     Feeds into the Learning Engine.
     """
     import json
+
     try:
         payload = {
             "timestamp": datetime.utcnow().isoformat(),
             "event_type": event_type,
-            "data": data
+            "data": data,
         }
         with open(TELEMETRY_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(payload) + "\n")

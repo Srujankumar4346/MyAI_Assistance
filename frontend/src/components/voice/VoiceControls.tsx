@@ -13,8 +13,13 @@ interface VoiceControlsProps {
 }
 
 export const VoiceControls: React.FC<VoiceControlsProps> = ({
-  state, isContinuous, isConnected,
-  onPushToTalk, onStop, onToggleContinuous, onStopSpeaking,
+  state,
+  isContinuous,
+  isConnected,
+  onPushToTalk,
+  onStop,
+  onToggleContinuous,
+  onStopSpeaking,
 }) => {
   const isListening = state === 'listening';
   const isSpeaking = state === 'speaking';
@@ -52,7 +57,9 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({
             : 'bg-slate-700/40 border-white/10 text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-40'
         }`}
       >
-        <span className={`w-2 h-2 rounded-full ${isContinuous ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
+        <span
+          className={`w-2 h-2 rounded-full ${isContinuous ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`}
+        />
         {isContinuous ? 'Continuous ON' : 'Continuous'}
       </motion.button>
 
@@ -73,7 +80,9 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({
 
       {/* Connection indicator */}
       <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
-        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400 animate-pulse'}`} />
+        <span
+          className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400 animate-pulse'}`}
+        />
         {isConnected ? 'Connected' : 'Reconnecting…'}
       </div>
     </div>

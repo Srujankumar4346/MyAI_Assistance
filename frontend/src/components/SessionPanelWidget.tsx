@@ -20,7 +20,7 @@ export const SessionPanelWidget: React.FC = React.memo(() => {
 
   useEffect(() => {
     // Simulated REST load for skeletal structure
-    setSession(null); 
+    setSession(null);
   }, []);
 
   useEffect(() => {
@@ -45,25 +45,38 @@ export const SessionPanelWidget: React.FC = React.memo(() => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       className="p-6 bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl flex flex-col gap-5"
     >
       <div className="flex justify-between items-start border-b border-gray-800 pb-3">
         <div className="flex flex-col gap-1 overflow-hidden">
-          <h3 className="text-lg font-semibold text-gray-100 truncate">{session.pageTitle || 'New Tab'}</h3>
-          <span className="text-xs text-blue-400 font-mono truncate">{session.currentUrl || 'about:blank'}</span>
+          <h3 className="text-lg font-semibold text-gray-100 truncate">
+            {session.pageTitle || 'New Tab'}
+          </h3>
+          <span className="text-xs text-blue-400 font-mono truncate">
+            {session.currentUrl || 'about:blank'}
+          </span>
         </div>
         <div className="flex gap-2">
           {/* Action buttons (these would typically fire REST APIs) */}
-          <button className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors" title="Refresh">
+          <button
+            className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+            title="Refresh"
+          >
             <RefreshCw className="w-4 h-4" />
           </button>
-          <button className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors" title="Suspend">
+          <button
+            className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+            title="Suspend"
+          >
             <Pause className="w-4 h-4" />
           </button>
-          <button className="p-2 hover:bg-red-900/50 rounded-lg text-gray-400 hover:text-red-400 transition-colors" title="Close Session">
+          <button
+            className="p-2 hover:bg-red-900/50 rounded-lg text-gray-400 hover:text-red-400 transition-colors"
+            title="Close Session"
+          >
             <XCircle className="w-4 h-4" />
           </button>
         </div>
@@ -71,7 +84,9 @@ export const SessionPanelWidget: React.FC = React.memo(() => {
 
       <div className="grid grid-cols-3 gap-4 text-sm">
         <div className="flex flex-col gap-1">
-          <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">Session ID</span>
+          <span className="text-gray-500 uppercase text-xs font-bold tracking-wider">
+            Session ID
+          </span>
           <span className="text-gray-300 font-mono text-xs truncate" title={session.sessionId}>
             {session.sessionId.split('-')[0]}...
           </span>

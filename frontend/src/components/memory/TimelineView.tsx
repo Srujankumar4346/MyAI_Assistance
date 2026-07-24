@@ -22,7 +22,11 @@ const PERIOD_ICONS: Record<string, React.ReactNode> = {
 };
 
 export const TimelineView: React.FC<TimelineViewProps> = ({
-  timeline, onPin, onArchive, onDelete, onReinforce,
+  timeline,
+  onPin,
+  onArchive,
+  onDelete,
+  onReinforce,
 }) => {
   if (timeline.length === 0) {
     return (

@@ -1,6 +1,8 @@
 import asyncio
-from typing import Callable, Dict, List, Any
+from typing import Any, Callable, Dict, List
+
 from backend.utils.logger import logger
+
 
 class EventBus:
     """
@@ -8,6 +10,7 @@ class EventBus:
     Decouples browser events from downstream systems (Memory, Telemetry, etc.).
     Includes reliability layer (failure isolation).
     """
+
     def __init__(self):
         self.logger = logger
         self._subscribers: Dict[str, List[Callable]] = {}
@@ -36,10 +39,7 @@ class EventBus:
                 callback(event_type, data)
         except Exception as e:
             self.logger.error(f"EventBus subscriber failed on {event_type}: {e}")
-            self._failed_events.append({
-                "event_type": event_type,
-                "data": data,
-                "error": str(e)
-            })
+            self._failed_events.append({"event_type": event_type, "data": data, "error": str(e)})
+
 
 event_bus = EventBus()

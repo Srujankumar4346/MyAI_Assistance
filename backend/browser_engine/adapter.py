@@ -1,7 +1,9 @@
-from typing import Dict, Any, Optional
-from playwright.async_api import async_playwright, Browser, BrowserContext, Page
+from typing import Dict, Optional
+
+from playwright.async_api import Browser, BrowserContext, async_playwright
+
 from backend.utils.logger import logger
-import asyncio
+
 
 class BrowserAdapter:
     """
@@ -9,6 +11,7 @@ class BrowserAdapter:
     Allows swapping out Playwright for other drivers in the future without
     refactoring the entire Browser Engine.
     """
+
     def __init__(self):
         self.logger = logger
         self._playwright = None
@@ -23,11 +26,13 @@ class BrowserAdapter:
             self._browser = await self._playwright.chromium.launch(headless=True)
             self.logger.info("Browser Adapter initialized (Playwright).")
 
-    async def get_or_create_context(self, session_id: str, headed: bool = False, persist_dir: str = None) -> BrowserContext:
+    async def get_or_create_context(
+        self, session_id: str, headed: bool = False, persist_dir: str = None
+    ) -> BrowserContext:
         """
         Retrieves or creates an isolated browser context (session).
-        If headed=True, it might require launching a new browser instance 
-        specifically for headed mode (Playwright handles this by using launch_persistent_context 
+        If headed=True, it might require launching a new browser instance
+        specifically for headed mode (Playwright handles this by using launch_persistent_context
         or a separate browser). For simplicity in MVP, we create a new context.
         """
         if not self._playwright:
@@ -59,13 +64,14 @@ class BrowserAdapter:
         for ctx in self._contexts.values():
             await ctx.close()
         self._contexts.clear()
-        
+
         if self._browser:
             await self._browser.close()
             self._browser = None
-            
+
         if self._playwright:
             await self._playwright.stop()
             self._playwright = None
+
 
 browser_adapter = BrowserAdapter()

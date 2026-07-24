@@ -1,124 +1,48 @@
-# NOVA_X — Neural Operating Virtual Assistant
+# NOVA_X
 
-NOVA_X is a state-of-the-art personal AI operating system featuring a futuristic glassmorphic desktop interface, local LLM inference (Ollama), ChromaDB vector memory, SQLite/PostgreSQL conversation history, and a FastAPI clean architecture microservice backend.
+[![Backend CI](https://github.com/USER/NOVA_X/actions/workflows/backend.yml/badge.svg)](https://github.com/USER/NOVA_X/actions/workflows/backend.yml)
+[![Frontend CI](https://github.com/USER/NOVA_X/actions/workflows/frontend.yml/badge.svg)](https://github.com/USER/NOVA_X/actions/workflows/frontend.yml)
+[![Code Quality & Security](https://github.com/USER/NOVA_X/actions/workflows/quality.yml/badge.svg)](https://github.com/USER/NOVA_X/actions/workflows/quality.yml)
+[![Python Version](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![Node.js Version](https://img.shields.io/badge/node-20.x-green.svg)](https://nodejs.org/en/about/previous-releases)
 
----
+**NOVA_X** is an advanced Autonomous Agent Platform capable of localized Web Browsing, Desktop Automation, Neural Memory Management, and Voice Integration.
 
-## 🚀 Tech Stack
+## Mission Statement
+Our goal is to provide a fully decentralized, privacy-focused orchestration engine that allows Large Language Models (like Llama 3 via Ollama) to operate on a user's machine autonomously.
 
-### Frontend
-- **React 19 + TypeScript**
-- **Tailwind CSS v4**
-- **Framer Motion & Lucide Icons**
-- **Vite**
-- **React Router**
-- **Axios**
+## Key Features
+- **Browser Engine**: A headless Chromium orchestrator powered by Playwright for autonomous research and interaction.
+- **Desktop Engine**: Safely interfaces with OS-level APIs for terminal usage, clipboard manipulation, and UI automation.
+- **Neural Memory**: A localized RAG memory store using ChromaDB, allowing the agent to continuously learn user preferences over time.
+- **Voice Engine**: Real-time TTS/STT pipelines for conversational interactions.
+- **Mission Control**: A React-powered Glassmorphic Dashboard displaying real-time telemetry over WebSockets.
 
-### Backend
-- **Python 3.11 / 3.12**
-- **FastAPI + Uvicorn**
-- **SQLAlchemy (PostgreSQL / SQLite fallback)**
-- **ChromaDB Vector Store (with high-res SQLite cosine-similarity fallback)**
-- **Passlib + PyJWT Authentication**
-- **Ollama Engine Integration**
+## Architecture Overview
+NOVA_X relies on a multi-service architecture:
+- **Frontend**: React (Vite) + TypeScript + Tailwind CSS.
+- **Backend**: FastAPI + Python 3.10 + SQLAlchemy.
+- **Database**: PostgreSQL (Relational) + ChromaDB (Vector).
+- **Messaging**: Centralized Python EventBus mapped directly to WebSockets.
 
----
+Read more in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## 📂 Project Structure & Clean Architecture
+## Screenshots
+> *(Placeholders for UI Screenshots)*
+> - `![Dashboard](docs/assets/dashboard.png)`
+> - `![Browser Manager](docs/assets/browser.png)`
+> - `![Knowledge Graph](docs/assets/knowledge_graph.png)`
 
-NOVA_X conforms to SOLID design principles and clean architecture:
+## Installation & Deployment
+NOVA_X is fully containerized. Please refer to our documentation for setup guides:
+- **[INSTALL.md](INSTALL.md)** - Docker compose profiles and local development setup.
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deploying to VPS, Vercel, and Render.
 
-```
-NOVA_X/
-├── backend/              # FastAPI Application
-│   ├── core/             # Core configurations (config.py)
-│   ├── database/         # SQLAlchemy connection & models
-│   ├── security/         # Password hashing & JWT helpers
-│   ├── memory/           # ChromaDB & SQLite TF-IDF memory connector
-│   ├── schemas/          # Pydantic schemas (from_attributes = True)
-│   ├── services/         # Ollama engine, TTS synthesis, WebSocket manager
-│   ├── controllers/      # Route logic & controllers
-│   ├── routers/          # Route handlers & endpoints
-│   ├── middleware/       # Performance & error logging middleware
-│   ├── utils/            # Logging and general helpers
-│   └── main.py           # FastAPI entrypoint
-├── frontend/             # React Application
-│   ├── src/
-│   │   ├── components/   # Modular UI components (Chat, Voice, Navbar)
-│   │   ├── hooks/        # custom hooks (useVoice)
-│   │   ├── pages/        # Dashboard, Chat, Voice, Settings
-│   │   └── api/          # Axios HTTP & WS Client
-├── docker/               # Containerized configs (Dockerfiles)
-├── docs/                 # Documentation & Guides
-└── docker-compose.yml    # Docker Compose setup
-```
+## API Documentation
+See **[API.md](API.md)** for a complete reference on available REST and WebSocket endpoints.
 
----
+## Contributing
+We welcome all PRs! Read **[CONTRIBUTING.md](CONTRIBUTING.md)** for branch strategies, linting standards, and commit conventions.
 
-## 📡 API Endpoints Overview
-
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| POST | `/api/login` | Authenticate user and issue JWT token | No |
-| POST | `/api/logout` | Invalidate active session | Yes |
-| POST | `/api/chat` | Stream AI response from Ollama with memory context | Yes |
-| GET | `/api/history` | Retrieve user chat session history | Yes |
-| GET | `/api/history/{id}`| Fetch message log for specific conversation | Yes |
-| DELETE | `/api/history/{id}`| Delete conversation session | Yes |
-| GET | `/api/memory` | Fetch vector memory records | Yes |
-| POST | `/api/memory` | Store new fact into relational DB & vector DB | Yes |
-| DELETE | `/api/memory/{id}`| Remove memory record | Yes |
-| GET | `/api/settings` | Get user system preferences | Yes |
-| POST | `/api/settings` | Save updated system preferences | Yes |
-| GET | `/api/system` | Return CPU, Memory, Disk, and Host OS metrics | Yes |
-| GET | `/api/logs` | Fetch real-time system logs | Yes |
-| GET | `/api/health` | Health check probe | No |
-| GET | `/api/voice/voices` | List available TTS voices | Yes |
-| GET | `/api/voice/settings`| Get voice configurations | Yes |
-| POST | `/api/voice/settings`| Update voice settings | Yes |
-| POST | `/api/voice/speak` | Synthesize custom text to speech | Yes |
-
----
-
-## 🛠 Quick Start Guide
-
-### 1. Environment Configurations
-Create a `.env` file in the root folder:
-```env
-SECRET_KEY=generate_a_random_jwt_secret_key_string
-OLLAMA_BASE_URL=http://localhost:11434
-DEFAULT_MODEL=llama3.1:8b
-ADMIN_USERNAME=SrujanKumar
-ADMIN_PASSWORD=Srujan@123
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### 2. Backend Server Setup
-Ensure Python 3.11+ is installed.
-```bash
-# Activate virtual environment
-.\venv\Scripts\activate
-
-# Install requirements
-pip install -r requirements.txt
-
-# Run FastAPI Server
-python -m uvicorn backend.main:app --reload --port 8000
-```
-
-### 3. Frontend Development Server Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 🐳 Running with Docker
-```bash
-docker-compose up --build
-```
-This launches a Postgres DB container, FastAPI backend, and Vite frontend.
+## License
+MIT License. See `LICENSE` for more information.

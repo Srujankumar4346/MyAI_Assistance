@@ -35,7 +35,9 @@ function ImportanceRing({ score }: { score: number }) {
       <svg width="48" height="48" className="-rotate-90">
         <circle cx="24" cy="24" r={r} fill="none" stroke="#1e293b" strokeWidth="4" />
         <circle
-          cx="24" cy="24" r={r}
+          cx="24"
+          cy="24"
+          r={r}
           fill="none"
           stroke={color}
           strokeWidth="4"
@@ -56,7 +58,11 @@ function ImportanceRing({ score }: { score: number }) {
 }
 
 export const MemoryCard: React.FC<MemoryCardProps> = ({
-  memory, onPin, onArchive, onDelete, onReinforce,
+  memory,
+  onPin,
+  onArchive,
+  onDelete,
+  onReinforce,
 }) => {
   const catColor = CATEGORY_COLORS[memory.category] || CATEGORY_COLORS.general;
   const timeAgo = (iso: string) => {
@@ -91,7 +97,9 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
         <div className="flex-1 min-w-0">
           {/* Category + Type badges */}
           <div className="flex flex-wrap gap-1.5 mb-2">
-            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border capitalize ${catColor}`}>
+            <span
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border capitalize ${catColor}`}
+            >
               {memory.category}
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-white/10 text-slate-400">
@@ -110,9 +118,13 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({
           {/* Tags */}
           {memory.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {memory.tags.map(tag => (
-                <span key={tag} className="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                  <Tag className="w-2.5 h-2.5" />{tag}
+              {memory.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded flex items-center gap-0.5"
+                >
+                  <Tag className="w-2.5 h-2.5" />
+                  {tag}
                 </span>
               ))}
             </div>

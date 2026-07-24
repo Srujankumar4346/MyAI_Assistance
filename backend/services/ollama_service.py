@@ -8,12 +8,14 @@ Health monitoring:
   • Automatically switches to Gemini API when Ollama is unreachable.
   • Automatically restores Ollama when it comes back online.
 """
-import httpx
-import json
-import os
+
 import asyncio
+import json
 import time
-from typing import AsyncGenerator, List, Dict, Any, Optional
+from typing import AsyncGenerator, Dict, List, Optional
+
+import httpx
+
 from backend.core.config import settings
 from backend.utils.logger import logger
 
@@ -38,7 +40,7 @@ class OllamaService:
         # Health state — None means "not checked yet"
         self._ollama_available: Optional[bool] = None
         self._last_check_ts: float = 0.0
-        self._check_interval: float = 60.0   # seconds between background health checks
+        self._check_interval: float = 60.0  # seconds between background health checks
         self._check_lock = asyncio.Lock()
 
     # ── Health monitoring ──────────────────────────────────────────────────────
@@ -67,9 +69,13 @@ class OllamaService:
                 logger.info(f"[OllamaService] Initial health check → available={available}")
             elif available != self._ollama_available:
                 if available:
-                    logger.info("[OllamaService] Ollama came BACK ONLINE — restoring local inference.")
+                    logger.info(
+                        "[OllamaService] Ollama came BACK ONLINE — restoring local inference."
+                    )
                 else:
-                    logger.warning("[OllamaService] Ollama went OFFLINE — switching to Gemini fallback.")
+                    logger.warning(
+                        "[OllamaService] Ollama went OFFLINE — switching to Gemini fallback."
+                    )
 
             self._ollama_available = available
             self._last_check_ts = now
@@ -165,7 +171,11 @@ class OllamaService:
             req_prefix = model.split(":")[0].lower()
             for m in installed:
                 inst_prefix = m.split(":")[0].lower()
-                if inst_prefix == req_prefix or req_prefix in inst_prefix or inst_prefix in req_prefix:
+                if (
+                    inst_prefix == req_prefix
+                    or req_prefix in inst_prefix
+                    or inst_prefix in req_prefix
+                ):
                     matched = m
                     break
             if matched:

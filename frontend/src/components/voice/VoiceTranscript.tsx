@@ -10,7 +10,10 @@ interface VoiceTranscriptProps {
 }
 
 export const VoiceTranscript: React.FC<VoiceTranscriptProps> = ({
-  entries, liveText, aiText, onClear,
+  entries,
+  liveText,
+  aiText,
+  onClear,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 

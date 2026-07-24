@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVoice, getAudioInputDevices, getAudioOutputDevices, type AudioDevice } from '../hooks/useVoice';
+import {
+  useVoice,
+  getAudioInputDevices,
+  getAudioOutputDevices,
+  type AudioDevice,
+} from '../hooks/useVoice';
 import { MicrophoneOrb } from '../components/voice/MicrophoneOrb';
 import { VoiceWaveform } from '../components/voice/VoiceWaveform';
 import { VoiceTranscript } from '../components/voice/VoiceTranscript';
@@ -22,7 +27,14 @@ const ParticleCanvas: React.FC = () => {
     if (!ctx) return;
 
     let animId: number;
-    const particles: Array<{ x: number; y: number; r: number; dx: number; dy: number; alpha: number }> = [];
+    const particles: Array<{
+      x: number;
+      y: number;
+      r: number;
+      dx: number;
+      dy: number;
+      alpha: number;
+    }> = [];
 
     const resize = () => {
       canvas.width = canvas.offsetWidth;
@@ -44,7 +56,7 @@ const ParticleCanvas: React.FC = () => {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
+      particles.forEach((p) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(99,102,241,${p.alpha})`;
@@ -66,7 +78,12 @@ const ParticleCanvas: React.FC = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none opacity-50" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none opacity-50"
+    />
+  );
 };
 
 // ─── Voice Settings Panel ─────────────────────────────────────────────────────
@@ -96,10 +113,20 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.getVoiceSettings().then((s: typeof settings) => setSettings(s)).catch(() => {});
-    api.getVoices().then((r: { voices: { id: string; name: string }[] }) => setVoices(r.voices)).catch(() => {});
-    getAudioInputDevices().then(setMicDevices).catch(() => {});
-    getAudioOutputDevices().then(setSpeakerDevices).catch(() => {});
+    api
+      .getVoiceSettings()
+      .then((s: typeof settings) => setSettings(s))
+      .catch(() => {});
+    api
+      .getVoices()
+      .then((r: { voices: { id: string; name: string }[] }) => setVoices(r.voices))
+      .catch(() => {});
+    getAudioInputDevices()
+      .then(setMicDevices)
+      .catch(() => {});
+    getAudioOutputDevices()
+      .then(setSpeakerDevices)
+      .catch(() => {});
   }, []);
 
   const save = async () => {
@@ -123,7 +150,13 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
     >
       <div className="flex items-center justify-between p-4 border-b border-white/5">
         <h3 className="font-semibold text-white">Voice Settings</h3>
-        <button id="voice-settings-close" onClick={onClose} className="text-slate-400 hover:text-white text-xl">×</button>
+        <button
+          id="voice-settings-close"
+          onClick={onClose}
+          className="text-slate-400 hover:text-white text-xl"
+        >
+          ×
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
@@ -133,19 +166,26 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
           <select
             id="voice-select"
             value={settings.voice_name}
-            onChange={e => setSettings(s => ({ ...s, voice_name: e.target.value }))}
+            onChange={(e) => setSettings((s) => ({ ...s, voice_name: e.target.value }))}
             className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
           >
-            {voices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+            {voices.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Language */}
         <div>
           <label className="text-xs font-mono text-slate-400 mb-1 block">Language</label>
-          <select id="voice-language" value={settings.language}
-            onChange={e => setSettings(s => ({ ...s, language: e.target.value }))}
-            className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+          <select
+            id="voice-language"
+            value={settings.language}
+            onChange={(e) => setSettings((s) => ({ ...s, language: e.target.value }))}
+            className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+          >
             <option value="en-US">English (US)</option>
             <option value="en-GB">English (UK)</option>
             <option value="en-AU">English (AU)</option>
@@ -157,11 +197,18 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
         {micDevices.length > 0 && (
           <div>
             <label className="text-xs font-mono text-slate-400 mb-1 block">🎙 Microphone</label>
-            <select id="voice-mic-select" value={selectedMic}
-              onChange={e => setSelectedMic(e.target.value)}
-              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+            <select
+              id="voice-mic-select"
+              value={selectedMic}
+              onChange={(e) => setSelectedMic(e.target.value)}
+              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+            >
               <option value="">Default Microphone</option>
-              {micDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}
+              {micDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label}
+                </option>
+              ))}
             </select>
           </div>
         )}
@@ -170,11 +217,18 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
         {speakerDevices.length > 0 && (
           <div>
             <label className="text-xs font-mono text-slate-400 mb-1 block">🔊 Speaker Output</label>
-            <select id="voice-speaker-select" value={selectedSpeaker}
-              onChange={e => setSelectedSpeaker(e.target.value)}
-              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+            <select
+              id="voice-speaker-select"
+              value={selectedSpeaker}
+              onChange={(e) => setSelectedSpeaker(e.target.value)}
+              className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+            >
               <option value="">Default Speaker</option>
-              {speakerDevices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}
+              {speakerDevices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label}
+                </option>
+              ))}
             </select>
           </div>
         )}
@@ -182,31 +236,52 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
         {/* Speed */}
         <div>
           <label className="text-xs font-mono text-slate-400 mb-1 flex justify-between">
-            <span>Speed</span><span className="text-indigo-300">{settings.speed.toFixed(1)}x</span>
+            <span>Speed</span>
+            <span className="text-indigo-300">{settings.speed.toFixed(1)}x</span>
           </label>
-          <input type="range" min="0.5" max="2" step="0.1" value={settings.speed}
-            onChange={e => setSettings(s => ({ ...s, speed: parseFloat(e.target.value) }))}
-            className="w-full accent-indigo-500" />
+          <input
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.1"
+            value={settings.speed}
+            onChange={(e) => setSettings((s) => ({ ...s, speed: parseFloat(e.target.value) }))}
+            className="w-full accent-indigo-500"
+          />
         </div>
 
         {/* Pitch */}
         <div>
           <label className="text-xs font-mono text-slate-400 mb-1 flex justify-between">
-            <span>Pitch</span><span className="text-indigo-300">{settings.pitch.toFixed(1)}x</span>
+            <span>Pitch</span>
+            <span className="text-indigo-300">{settings.pitch.toFixed(1)}x</span>
           </label>
-          <input type="range" min="0.5" max="2" step="0.1" value={settings.pitch}
-            onChange={e => setSettings(s => ({ ...s, pitch: parseFloat(e.target.value) }))}
-            className="w-full accent-indigo-500" />
+          <input
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.1"
+            value={settings.pitch}
+            onChange={(e) => setSettings((s) => ({ ...s, pitch: parseFloat(e.target.value) }))}
+            className="w-full accent-indigo-500"
+          />
         </div>
 
         {/* Volume */}
         <div>
           <label className="text-xs font-mono text-slate-400 mb-1 flex justify-between">
-            <span>Volume</span><span className="text-indigo-300">{Math.round(settings.volume * 100)}%</span>
+            <span>Volume</span>
+            <span className="text-indigo-300">{Math.round(settings.volume * 100)}%</span>
           </label>
-          <input type="range" min="0" max="1" step="0.05" value={settings.volume}
-            onChange={e => setSettings(s => ({ ...s, volume: parseFloat(e.target.value) }))}
-            className="w-full accent-indigo-500" />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={settings.volume}
+            onChange={(e) => setSettings((s) => ({ ...s, volume: parseFloat(e.target.value) }))}
+            className="w-full accent-indigo-500"
+          />
         </div>
 
         {/* Toggles */}
@@ -219,9 +294,13 @@ const VoiceSettingsPanel: React.FC<VoiceSettingsPanelProps> = ({ onClose }) => {
             <span className="text-sm text-slate-300">{label}</span>
             <div
               className={`relative w-10 h-5 rounded-full transition-colors ${(settings as Record<string, unknown>)[key] ? 'bg-indigo-600' : 'bg-slate-700'}`}
-              onClick={() => setSettings(s => ({ ...s, [key]: !(s as Record<string, unknown>)[key] }))}
+              onClick={() =>
+                setSettings((s) => ({ ...s, [key]: !(s as Record<string, unknown>)[key] }))
+              }
             >
-              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${(settings as Record<string, unknown>)[key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              <div
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${(settings as Record<string, unknown>)[key] ? 'translate-x-5' : 'translate-x-0.5'}`}
+              />
             </div>
           </label>
         ))}
@@ -254,10 +333,21 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
   const noiseReduction = localStorage.getItem('novax_noise_reduction') !== 'false';
 
   const {
-    voiceState, transcript, liveText, aiText,
-    confidence, latency, error, isConnected, reconnectAttempt,
-    startListening, stopListening, stopSpeaking,
-    toggleContinuous, clearTranscript, isContinuous,
+    voiceState,
+    transcript,
+    liveText,
+    aiText,
+    confidence,
+    latency,
+    error,
+    isConnected,
+    reconnectAttempt,
+    startListening,
+    stopListening,
+    stopSpeaking,
+    toggleContinuous,
+    clearTranscript,
+    isContinuous,
     setTranscript,
   } = useVoice({
     model: selectedModel,
@@ -267,7 +357,11 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
   });
 
   const stateLabels: Record<string, string> = {
-    idle: 'STANDBY', listening: 'LISTENING', thinking: 'PROCESSING', speaking: 'RESPONDING', error: 'ERROR',
+    idle: 'STANDBY',
+    listening: 'LISTENING',
+    thinking: 'PROCESSING',
+    speaking: 'RESPONDING',
+    error: 'ERROR',
   };
 
   // Fetch voice history sessions
@@ -286,7 +380,12 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
 
   // Keep conversation view open once active or has transcript entries
   useEffect(() => {
-    if (transcript.length > 0 || voiceState === 'listening' || voiceState === 'thinking' || voiceState === 'speaking') {
+    if (
+      transcript.length > 0 ||
+      voiceState === 'listening' ||
+      voiceState === 'thinking' ||
+      voiceState === 'speaking'
+    ) {
       setHasStartedConversation(true);
     }
   }, [transcript.length, voiceState]);
@@ -347,7 +446,7 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
       <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-slate-950/60 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowHistory(h => !h)}
+            onClick={() => setShowHistory((h) => !h)}
             className="p-2 rounded-xl bg-slate-800/60 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-400/40 transition-all text-xs flex items-center gap-1.5"
             title="Toggle Voice History Sidebar"
           >
@@ -377,20 +476,26 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
               ↺ Reconnecting…
             </span>
           )}
-          <div className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
-            voiceState === 'listening' ? 'border-emerald-400/40 text-emerald-300 bg-emerald-400/10 animate-pulse' :
-            voiceState === 'thinking'  ? 'border-amber-400/40  text-amber-300  bg-amber-400/10'  :
-            voiceState === 'speaking'  ? 'border-blue-400/40   text-blue-300   bg-blue-400/10'   :
-            voiceState === 'error'     ? 'border-red-400/40    text-red-300    bg-red-400/10'    :
-            'border-slate-600/40 text-slate-400 bg-slate-800/30'
-          }`}>
+          <div
+            className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
+              voiceState === 'listening'
+                ? 'border-emerald-400/40 text-emerald-300 bg-emerald-400/10 animate-pulse'
+                : voiceState === 'thinking'
+                  ? 'border-amber-400/40  text-amber-300  bg-amber-400/10'
+                  : voiceState === 'speaking'
+                    ? 'border-blue-400/40   text-blue-300   bg-blue-400/10'
+                    : voiceState === 'error'
+                      ? 'border-red-400/40    text-red-300    bg-red-400/10'
+                      : 'border-slate-600/40 text-slate-400 bg-slate-800/30'
+            }`}
+          >
             ● {stateLabels[voiceState] || 'STANDBY'}
           </div>
 
           {/* Settings */}
           <button
             id="voice-settings-open"
-            onClick={() => setShowSettings(s => !s)}
+            onClick={() => setShowSettings((s) => !s)}
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/60 border border-white/10 text-slate-400 hover:text-white hover:border-indigo-400/40 transition-all cursor-pointer"
           >
             ⚙
@@ -438,7 +543,12 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
                         {item.ai_response || 'No response'}
                       </p>
                       <div className="flex items-center justify-between mt-1.5 text-[9px] font-mono text-slate-500">
-                        <span>{new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>
+                          {new Date(item.created_at).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                         <span className="text-indigo-400">{item.model_used || selectedModel}</span>
                       </div>
                     </div>
@@ -474,8 +584,12 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
             >
               {/* Stats overlay top right */}
               <div className="absolute top-6 right-6 flex gap-3 text-xs opacity-60">
-                <span className="bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5 font-mono">Model: {selectedModel}</span>
-                <span className={`bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5 font-mono ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className="bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5 font-mono">
+                  Model: {selectedModel}
+                </span>
+                <span
+                  className={`bg-slate-900/60 px-3 py-1 rounded-lg border border-white/5 font-mono ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}
+                >
                   {isConnected ? 'Online' : 'Offline'}
                 </span>
               </div>
@@ -483,7 +597,9 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
               <div className="flex flex-col items-center gap-10 max-w-md w-full text-center">
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold text-white tracking-wide">
-                    {voiceState === 'listening' ? 'I\'m Listening...' : 'Tap Orb to speak with NOVA_X'}
+                    {voiceState === 'listening'
+                      ? "I'm Listening..."
+                      : 'Tap Orb to speak with NOVA_X'}
                   </h3>
                   <p className="text-sm text-slate-400 min-h-[1.5rem] px-4 font-mono max-w-sm mx-auto">
                     {liveText || 'Ask anything like: "What is quantum computing?"'}
@@ -492,11 +608,7 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
 
                 {/* Centered Orb & Waveform */}
                 <div className="flex flex-col items-center gap-6 py-6">
-                  <MicrophoneOrb
-                    state={voiceState}
-                    onClick={handleOrbClick}
-                    disabled={false}
-                  />
+                  <MicrophoneOrb state={voiceState} onClick={handleOrbClick} disabled={false} />
                   <div className="h-10 w-64 flex items-center justify-center">
                     <VoiceWaveform state={voiceState} />
                   </div>
@@ -528,14 +640,33 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
               <div className="flex flex-col items-center justify-between w-full lg:w-80 shrink-0 px-6 py-6 lg:py-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-slate-950/40 gap-4">
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 w-full text-center">
                   {[
-                    { label: 'Model', value: selectedModel || 'llama3.1:8b', color: 'text-indigo-300' },
-                    { label: 'Status', value: isConnected ? 'Online' : 'Offline', color: isConnected ? 'text-emerald-400' : 'text-red-400' },
+                    {
+                      label: 'Model',
+                      value: selectedModel || 'llama3.1:8b',
+                      color: 'text-indigo-300',
+                    },
+                    {
+                      label: 'Status',
+                      value: isConnected ? 'Online' : 'Offline',
+                      color: isConnected ? 'text-emerald-400' : 'text-red-400',
+                    },
                     { label: 'Confidence', value: `${confidence}%`, color: 'text-amber-300' },
-                    { label: 'Latency', value: latency ? `${latency}ms` : '—', color: 'text-cyan-300' },
+                    {
+                      label: 'Latency',
+                      value: latency ? `${latency}ms` : '—',
+                      color: 'text-cyan-300',
+                    },
                   ].map(({ label, value, color }) => (
-                    <div key={label} className="bg-slate-800/40 border border-white/5 rounded-xl p-2 md:p-2.5">
-                      <p className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-wider">{label}</p>
-                      <p className={`text-xs md:text-sm font-bold font-mono ${color} truncate`}>{value}</p>
+                    <div
+                      key={label}
+                      className="bg-slate-800/40 border border-white/5 rounded-xl p-2 md:p-2.5"
+                    >
+                      <p className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                        {label}
+                      </p>
+                      <p className={`text-xs md:text-sm font-bold font-mono ${color} truncate`}>
+                        {value}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -601,4 +732,3 @@ export const Voice: React.FC<VoicePageProps> = ({ selectedModel }) => {
     </div>
   );
 };
-

@@ -1,12 +1,13 @@
-import os
-import uuid
 import math
+import os
 import re
-from typing import List, Dict, Any
+import uuid
+from typing import Any, Dict, List
+
 from backend.core.config import settings
-from backend.utils.logger import logger
 from backend.database.connection import SessionLocal
 from backend.database.models import MemoryModel
+from backend.utils.logger import logger
 
 
 def _get_db_session():
@@ -15,8 +16,9 @@ def _get_db_session():
 
 # ── TF-IDF Similarity Fallback (No native packages required) ──────────────────
 
+
 def tokenize(text: str) -> List[str]:
-    return re.findall(r'\w+', text.lower())
+    return re.findall(r"\w+", text.lower())
 
 
 def compute_tf(tokens: List[str]) -> Dict[str, float]:
@@ -50,17 +52,19 @@ class MemoryManager:
     def _init_chroma(self):
         try:
             import chromadb
+
             self.client = chromadb.PersistentClient(path=self.chroma_dir)
             self.collection = self.client.get_or_create_collection(
-                name="novax_user_memory",
-                metadata={"hnsw:space": "cosine"}
+                name="novax_user_memory", metadata={"hnsw:space": "cosine"}
             )
             logger.info("ChromaDB memory store initialized successfully.")
         except Exception as e:
             logger.warning(f"ChromaDB not available: {e}. Falling back to SQLite memory system.")
             self.collection = None
 
-    def add_memory(self, content: str, category: str = "general", metadata: Dict[str, Any] = None) -> bool:
+    def add_memory(
+        self, content: str, category: str = "general", metadata: Dict[str, Any] = None
+    ) -> bool:
         mem_id = str(uuid.uuid4())
         meta = metadata or {}
         meta["category"] = category
@@ -70,10 +74,7 @@ class MemoryManager:
         db = _get_db_session()
         try:
             db_mem = MemoryModel(
-                id=mem_id,
-                user_id=1,  # Default system user
-                content=content,
-                category=category
+                id=mem_id, user_id=1, content=content, category=category  # Default system user
             )
             db.add(db_mem)
             db.commit()
@@ -86,11 +87,7 @@ class MemoryManager:
         # ── 2. Add to Chroma Vector Store (if available) ──────────────────────
         if self.collection:
             try:
-                self.collection.add(
-                    documents=[content],
-                    metadatas=[meta],
-                    ids=[mem_id]
-                )
+                self.collection.add(documents=[content], metadatas=[meta], ids=[mem_id])
                 return True
             except Exception as e:
                 logger.error(f"Failed to add memory to ChromaDB: {e}")
@@ -107,21 +104,24 @@ class MemoryManager:
                 if count == 0:
                     return []
                 results = self.collection.query(
-                    query_texts=[query],
-                    n_results=min(n_results, count)
+                    query_texts=[query], n_results=min(n_results, count)
                 )
                 memories = []
                 if results and results.get("documents"):
                     docs = results["documents"][0]
-                    metas = results["metadatas"][0] if results.get("metadatas") else [{}] * len(docs)
+                    metas = (
+                        results["metadatas"][0] if results.get("metadatas") else [{}] * len(docs)
+                    )
                     ids = results["ids"][0]
                     for doc, meta, mem_id in zip(docs, metas, ids):
-                        memories.append({
-                            "id": mem_id,
-                            "content": doc,
-                            "category": meta.get("category", "general") if meta else "general",
-                            "metadata": meta
-                        })
+                        memories.append(
+                            {
+                                "id": mem_id,
+                                "content": doc,
+                                "category": meta.get("category", "general") if meta else "general",
+                                "metadata": meta,
+                            }
+                        )
                 return memories
             except Exception as e:
                 logger.error(f"ChromaDB query failed: {e}. Falling back to SQLite.")
@@ -136,11 +136,10 @@ class MemoryManager:
             query_tokens = tokenize(query)
             if not query_tokens:
                 # Return first N if no meaningful words
-                return [{
-                    "id": r.id,
-                    "content": r.content,
-                    "category": r.category or "general"
-                } for r in records[:n_results]]
+                return [
+                    {"id": r.id, "content": r.content, "category": r.category or "general"}
+                    for r in records[:n_results]
+                ]
 
             query_tf = compute_tf(query_tokens)
             scores = []
@@ -154,11 +153,9 @@ class MemoryManager:
             results = []
             for sim, r in scores[:n_results]:
                 if sim > 0.05:  # Relevance threshold
-                    results.append({
-                        "id": r.id,
-                        "content": r.content,
-                        "category": r.category or "general"
-                    })
+                    results.append(
+                        {"id": r.id, "content": r.content, "category": r.category or "general"}
+                    )
             return results
         except Exception as e:
             logger.error(f"[Memory] SQLite query fallback error: {e}")
@@ -171,11 +168,10 @@ class MemoryManager:
         db = _get_db_session()
         try:
             records = db.query(MemoryModel).order_by(MemoryModel.created_at.desc()).all()
-            return [{
-                "id": r.id,
-                "content": r.content,
-                "category": r.category or "general"
-            } for r in records]
+            return [
+                {"id": r.id, "content": r.content, "category": r.category or "general"}
+                for r in records
+            ]
         except Exception as e:
             logger.error(f"[Memory] get_all_memories error: {e}")
             return []

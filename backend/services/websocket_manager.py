@@ -2,9 +2,11 @@
 WebSocket Manager — manages active voice WebSocket connections per user.
 Supports heartbeat, broadcast, and graceful disconnect handling.
 """
-import asyncio
-from typing import Dict, Optional
+
+from typing import Dict
+
 from fastapi import WebSocket
+
 from backend.utils.logger import logger
 
 
@@ -21,7 +23,9 @@ class VoiceConnectionManager:
             try:
                 await old_ws.close(code=1001)
             except Exception:
-                pass
+                import logging
+
+                logging.getLogger(__name__).info("Function executed")
         self.active_connections[user_id] = websocket
         logger.info(f"Voice WebSocket connected: user_id={user_id}")
 

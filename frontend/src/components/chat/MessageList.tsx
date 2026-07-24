@@ -13,10 +13,10 @@ interface MessageListProps {
 }
 
 const PRESET_PROMPTS = [
-  "Write a Python FastAPI async endpoint",
-  "Explain how ChromaDB vector search works",
-  "Draft a project structure for NOVA_X Phase 2",
-  "What technologies power this AI OS?",
+  'Write a Python FastAPI async endpoint',
+  'Explain how ChromaDB vector search works',
+  'Draft a project structure for NOVA_X Phase 2',
+  'What technologies power this AI OS?',
 ];
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -35,7 +35,8 @@ export const MessageList: React.FC<MessageListProps> = ({
         </div>
         <h3 className="text-xl font-bold text-white mb-2">How can NOVA_X assist you today?</h3>
         <p className="text-slate-400 text-xs max-w-md">
-          Select an Ollama model, ask coding or general intelligence questions, or leverage long-term vector memory context.
+          Select an Ollama model, ask coding or general intelligence questions, or leverage
+          long-term vector memory context.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 max-w-lg w-full">

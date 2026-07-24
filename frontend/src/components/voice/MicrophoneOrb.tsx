@@ -8,12 +8,35 @@ interface MicrophoneOrbProps {
   disabled?: boolean;
 }
 
-const stateConfig: Record<VoiceState, { label: string; color: string; glow: string; ringColor: string }> = {
-  idle:      { label: 'Tap to Speak', color: '#6366f1', glow: '#4f46e5', ringColor: 'rgba(99,102,241,0.3)' },
-  listening: { label: 'Listening…',   color: '#10b981', glow: '#059669', ringColor: 'rgba(16,185,129,0.4)' },
-  thinking:  { label: 'Thinking…',    color: '#f59e0b', glow: '#d97706', ringColor: 'rgba(245,158,11,0.4)' },
-  speaking:  { label: 'Speaking…',    color: '#3b82f6', glow: '#2563eb', ringColor: 'rgba(59,130,246,0.4)' },
-  error:     { label: 'Error',        color: '#ef4444', glow: '#dc2626', ringColor: 'rgba(239,68,68,0.4)' },
+const stateConfig: Record<
+  VoiceState,
+  { label: string; color: string; glow: string; ringColor: string }
+> = {
+  idle: {
+    label: 'Tap to Speak',
+    color: '#6366f1',
+    glow: '#4f46e5',
+    ringColor: 'rgba(99,102,241,0.3)',
+  },
+  listening: {
+    label: 'Listening…',
+    color: '#10b981',
+    glow: '#059669',
+    ringColor: 'rgba(16,185,129,0.4)',
+  },
+  thinking: {
+    label: 'Thinking…',
+    color: '#f59e0b',
+    glow: '#d97706',
+    ringColor: 'rgba(245,158,11,0.4)',
+  },
+  speaking: {
+    label: 'Speaking…',
+    color: '#3b82f6',
+    glow: '#2563eb',
+    ringColor: 'rgba(59,130,246,0.4)',
+  },
+  error: { label: 'Error', color: '#ef4444', glow: '#dc2626', ringColor: 'rgba(239,68,68,0.4)' },
 };
 
 export const MicrophoneOrb: React.FC<MicrophoneOrbProps> = ({ state, onClick, disabled }) => {
@@ -44,7 +67,8 @@ export const MicrophoneOrb: React.FC<MicrophoneOrbProps> = ({ state, onClick, di
         <motion.div
           className="absolute rounded-full border-2 border-transparent"
           style={{
-            width: 160, height: 160,
+            width: 160,
+            height: 160,
             borderTopColor: cfg.color,
             borderRightColor: cfg.color,
           }}
@@ -70,8 +94,8 @@ export const MicrophoneOrb: React.FC<MicrophoneOrbProps> = ({ state, onClick, di
       >
         {/* Microphone icon */}
         <svg viewBox="0 0 24 24" fill="white" className="w-12 h-12 drop-shadow-lg">
-          <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3z"/>
-          <path d="M17 12c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-2.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3z" />
+          <path d="M17 12c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-2.08c3.39-.49 6-3.39 6-6.92h-2z" />
         </svg>
 
         {/* Shimmer overlay */}

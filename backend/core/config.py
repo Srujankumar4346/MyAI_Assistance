@@ -1,7 +1,8 @@
 import os
 import sys
-from pydantic_settings import BaseSettings
+
 from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
 # Load .env file explicitly into environment variables
 load_dotenv()
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     VERSION: str = "2.0.0"
 
     # ── Security — REQUIRED, no default ───────────────────────────────────────
-    SECRET_KEY: str = ""            # populated in __init__
+    SECRET_KEY: str = ""  # populated in __init__
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
 

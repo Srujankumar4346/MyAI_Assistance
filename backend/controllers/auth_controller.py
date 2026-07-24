@@ -1,10 +1,12 @@
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
 from backend.core.config import settings
 from backend.database.models import User
-from backend.schemas.schemas import LoginRequest, TokenResponse
-from backend.security.auth import verify_password, get_password_hash, create_access_token
+from backend.schemas.schemas import LoginRequest
+from backend.security.auth import create_access_token, get_password_hash, verify_password
 from backend.utils.logger import logger
+
 
 def login_user(payload: LoginRequest, db: Session) -> dict:
     logger.info(f"Login attempt for user: {payload.username}")
@@ -12,12 +14,14 @@ def login_user(payload: LoginRequest, db: Session) -> dict:
 
     if not user:
         # First-time login: auto-create if password matches ADMIN_PASSWORD (or admin credentials match)
-        is_admin_user = (payload.username == settings.ADMIN_USERNAME or payload.username.lower() == "srujankumar")
+        is_admin_user = (
+            payload.username == settings.ADMIN_USERNAME or payload.username.lower() == "srujankumar"
+        )
         if is_admin_user and payload.password == settings.ADMIN_PASSWORD:
             logger.info(f"Creating new admin user: {payload.username}")
             user = User(
                 username=payload.username,
-                hashed_password=get_password_hash(settings.ADMIN_PASSWORD)
+                hashed_password=get_password_hash(settings.ADMIN_PASSWORD),
             )
             db.add(user)
             db.commit()
@@ -31,7 +35,10 @@ def login_user(payload: LoginRequest, db: Session) -> dict:
             # Password mismatch — but if the submitted creds ARE the current
             # admin env-var values, the hash in the DB is stale (e.g. from a
             # previous deploy with different env vars).  Re-hash and proceed.
-            is_admin_user = (payload.username == settings.ADMIN_USERNAME or payload.username.lower() == "srujankumar")
+            is_admin_user = (
+                payload.username == settings.ADMIN_USERNAME
+                or payload.username.lower() == "srujankumar"
+            )
             if is_admin_user and payload.password == settings.ADMIN_PASSWORD:
                 logger.info("Admin password hash is stale — re-hashing to match current env var")
                 user.hashed_password = get_password_hash(settings.ADMIN_PASSWORD)

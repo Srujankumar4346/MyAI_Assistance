@@ -98,28 +98,33 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphProps> = ({ graph, onNod
     }
     const q = searchQuery.toLowerCase();
     const filtered = graph.nodes.filter(
-      n => n.label.toLowerCase().includes(q) || n.node_type.toLowerCase().includes(q)
+      (n) => n.label.toLowerCase().includes(q) || n.node_type.toLowerCase().includes(q)
     );
     setNodes(layoutNodes(filtered));
   }, [searchQuery, graph.nodes]);
 
-  const handleNodeClick = useCallback((_: any, node: Node) => {
-    setSelectedNode(node.data);
-    const gNode = graph.nodes.find(n => n.id === node.id);
-    if (gNode && onNodeClick) onNodeClick(gNode);
-  }, [graph.nodes, onNodeClick]);
+  const handleNodeClick = useCallback(
+    (_: any, node: Node) => {
+      setSelectedNode(node.data);
+      const gNode = graph.nodes.find((n) => n.id === node.id);
+      if (gNode && onNodeClick) onNodeClick(gNode);
+    },
+    [graph.nodes, onNodeClick]
+  );
 
   if (graph.nodes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-80 text-slate-500 gap-3">
         <div className="text-4xl">🕸️</div>
-        <p className="text-sm">Knowledge graph is empty. Chat with NOVA_X to build it automatically.</p>
+        <p className="text-sm">
+          Knowledge graph is empty. Chat with NOVA_X to build it automatically.
+        </p>
       </div>
     );
   }
 
   // Legend
-  const typesPresent = [...new Set(graph.nodes.map(n => n.node_type))];
+  const typesPresent = [...new Set(graph.nodes.map((n) => n.node_type))];
 
   return (
     <div className="relative h-[600px] rounded-2xl overflow-hidden border border-white/10 bg-slate-950/80">
@@ -151,7 +156,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphProps> = ({ graph, onNod
             <Search className="w-3.5 h-3.5 text-slate-400" />
             <input
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter nodes..."
               className="bg-transparent text-xs text-slate-200 outline-none w-32 placeholder:text-slate-500"
             />
@@ -161,7 +166,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphProps> = ({ graph, onNod
         {/* Legend */}
         <Panel position="bottom-left">
           <div className="glass-panel rounded-xl border border-white/10 p-3 flex flex-wrap gap-2 max-w-xs backdrop-blur-md">
-            {typesPresent.map(t => (
+            {typesPresent.map((t) => (
               <div key={t} className="flex items-center gap-1.5">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
@@ -182,8 +187,13 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphProps> = ({ graph, onNod
                 <span className="text-xs font-bold text-white">{selectedNode.label}</span>
               </div>
               <div className="text-[10px] text-slate-400 space-y-1">
-                <div>Type: <span className="text-slate-300 capitalize">{selectedNode.node_type}</span></div>
-                <div>Importance: <span className="text-amber-400">{Math.round(selectedNode.importance)}</span></div>
+                <div>
+                  Type: <span className="text-slate-300 capitalize">{selectedNode.node_type}</span>
+                </div>
+                <div>
+                  Importance:{' '}
+                  <span className="text-amber-400">{Math.round(selectedNode.importance)}</span>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedNode(null)}

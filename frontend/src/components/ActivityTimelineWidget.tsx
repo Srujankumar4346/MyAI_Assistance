@@ -28,49 +28,66 @@ export const ActivityTimelineWidget: React.FC = React.memo(() => {
   useEffect(() => {
     if (!isConnected) return;
     // The timeline subscribes to all relevant channels to create an aggregate view
-    // or subscribes to a specific `browser.events` firehose channel. 
+    // or subscribes to a specific `browser.events` firehose channel.
     // Assuming the backend sends timeline events to a generic channel:
     const unsubscribe = subscribe('browser.events', (event: BrowserEvent) => {
       const payload = event.payload;
-      
-      setEvents(prev => [{
-        id: event.event_id,
-        timestamp: event.timestamp,
-        workspace: payload.workspace || 'System',
-        sourceModule: event.source,
-        action: payload.action || event.event_type,
-        status: payload.status || 'info',
-        duration: payload.duration
-      }, ...prev].slice(0, 50)); // Keep last 50 events
+
+      setEvents((prev) =>
+        [
+          {
+            id: event.event_id,
+            timestamp: event.timestamp,
+            workspace: payload.workspace || 'System',
+            sourceModule: event.source,
+            action: payload.action || event.event_type,
+            status: payload.status || 'info',
+            duration: payload.duration,
+          },
+          ...prev,
+        ].slice(0, 50)
+      ); // Keep last 50 events
     });
-    
+
     return () => unsubscribe();
   }, [isConnected, subscribe]);
 
   const filteredEvents = useMemo(() => {
     if (filter === 'all') return events;
-    return events.filter(e => e.status === filter);
+    return events.filter((e) => e.status === filter);
   }, [events, filter]);
 
   const getStatusIcon = (status: string) => {
-    switch(status) {
-      case 'error': return <AlertTriangle className="w-4 h-4 text-red-400" />;
-      case 'warning': return <AlertTriangle className="w-4 h-4 text-orange-400" />;
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-400" />;
-      default: return <Info className="w-4 h-4 text-blue-400" />;
+    switch (status) {
+      case 'error':
+        return <AlertTriangle className="w-4 h-4 text-red-400" />;
+      case 'warning':
+        return <AlertTriangle className="w-4 h-4 text-orange-400" />;
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-400" />;
+      default:
+        return <Info className="w-4 h-4 text-blue-400" />;
     }
   };
 
   const formatTime = (ts: number) => {
-    return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return new Date(ts * 1000).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
   };
 
   if (isLoading) {
-    return <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">Loading Timeline...</div>;
+    return (
+      <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">
+        Loading Timeline...
+      </div>
+    );
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col h-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl overflow-hidden"
@@ -82,9 +99,9 @@ export const ActivityTimelineWidget: React.FC = React.memo(() => {
         </h3>
         <div className="flex items-center gap-2 text-xs">
           <Filter className="w-4 h-4 text-gray-500" />
-          <select 
-            value={filter} 
-            onChange={e => setFilter(e.target.value)}
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
             className="bg-gray-800 text-gray-300 rounded border border-gray-700 py-1 px-2 outline-none"
           >
             <option value="all">All Events</option>
@@ -103,8 +120,8 @@ export const ActivityTimelineWidget: React.FC = React.memo(() => {
         ) : (
           <div className="relative border-l border-gray-700 ml-3 space-y-6">
             <AnimatePresence>
-              {filteredEvents.map(event => (
-                <motion.div 
+              {filteredEvents.map((event) => (
+                <motion.div
                   key={event.id}
                   layout
                   initial={{ opacity: 0, x: -20 }}
@@ -117,7 +134,9 @@ export const ActivityTimelineWidget: React.FC = React.memo(() => {
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between items-start text-xs">
                       <span className="font-mono text-gray-500">{formatTime(event.timestamp)}</span>
-                      <span className="text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">{event.sourceModule}</span>
+                      <span className="text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">
+                        {event.sourceModule}
+                      </span>
                     </div>
                     <span className="text-sm text-gray-200">{event.action}</span>
                     <div className="flex justify-between text-xs text-gray-500">

@@ -47,10 +47,10 @@ async def run_validation():
         })
         if res.status_code != 200:
             results["Phase 3"] = "Failed"
-            results["Bugs"].append(f"Memory store failed: {res.text}")
+            results["Bugs"].append("[FAIL] Memory storage failed.")
             print(f"Memory Store Error: {res.text}")
         else:
-            print("✔ Memory stored successfully.")
+            print("[OK] Memory stored successfully.")
             
         # Search memory
         res = await client.get(f"{base_url}/memory/search?q=architect", headers=headers)
@@ -58,7 +58,7 @@ async def run_validation():
             results["Phase 3"] = "Failed"
             results["Bugs"].append("Memory search failed or returned no results.")
         else:
-            print("✔ Memory search working.")
+            print("[OK] Memory search working.")
             mem_id = res.json()["results"][0]["id"]
             
             # Reinforce memory
@@ -66,7 +66,7 @@ async def run_validation():
             if res_reinforce.status_code != 200:
                 results["Bugs"].append("Memory reinforcement failed.")
             else:
-                print("✔ Memory reinforcement working.")
+                print("[OK] Memory reinforcement working.")
         
         # Knowledge Graph
         res = await client.get(f"{base_url}/knowledge/graph", headers=headers)
@@ -74,7 +74,7 @@ async def run_validation():
             results["Phase 3"] = "Failed"
             results["Bugs"].append("Knowledge graph endpoint failed.")
         else:
-            print("✔ Knowledge graph endpoint working.")
+            print("[OK] Knowledge graph endpoint working.")
             
         # Learning Profile
         res = await client.get(f"{base_url}/learning/profile", headers=headers)
@@ -82,7 +82,7 @@ async def run_validation():
             results["Phase 3"] = "Failed"
             results["Bugs"].append("Learning profile endpoint failed.")
         else:
-            print("✔ Learning profile endpoint working.")
+            print("[OK] Learning profile endpoint working.")
 
         # Chat stream with context
         print("Checking Chat Context Injection...")
@@ -94,7 +94,7 @@ async def run_validation():
             results["Phase 3"] = "Failed"
             results["Bugs"].append("Chat endpoint failed.")
         else:
-            print("✔ Chat endpoint responding.")
+            print("[OK] Chat endpoint responding.")
 
     print("\n--- Validation Complete ---")
     for phase, status in results.items():

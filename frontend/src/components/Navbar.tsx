@@ -36,7 +36,9 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, title, onToggleS
           <div className="flex items-center gap-2 md:gap-3 glass-panel px-2.5 py-1.5 rounded-xl border border-white/10">
             <div className="flex items-center gap-1.5 text-xs md:text-sm text-slate-200">
               <ShieldCheck className="w-4 h-4 text-indigo-400" />
-              <span className="font-medium truncate max-w-[70px] md:max-w-none">{user.username}</span>
+              <span className="font-medium truncate max-w-[70px] md:max-w-none">
+                {user.username}
+              </span>
             </div>
             <button
               onClick={() => {

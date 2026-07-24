@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, BackgroundTasks
-from sqlalchemy.orm import Session
 from typing import List
 
-from backend.database.connection import get_db
-from backend.database.models import User
-from backend.schemas.schemas import ChatSchema, MessageSchema, ChatMessageInput
-from backend.security.auth import get_current_user
+from fastapi import APIRouter, BackgroundTasks, Depends
+from sqlalchemy.orm import Session
+
 from backend.controllers.chat_controller import (
+    delete_chat_session,
     get_history,
     get_messages,
     post_chat_message,
-    delete_chat_session,
 )
+from backend.database.connection import get_db
+from backend.database.models import User
+from backend.schemas.schemas import ChatMessageInput, ChatSchema, MessageSchema
+from backend.security.auth import get_current_user
 
 router = APIRouter()
 

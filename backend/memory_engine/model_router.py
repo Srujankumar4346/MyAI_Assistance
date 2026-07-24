@@ -13,26 +13,29 @@ Architecture:
 This replaces the hard-coded model selection with an intelligent router
 that can be extended in future phases (e.g., tool-use, agent routing).
 """
-import re
-from typing import Optional, List, Dict, Any
-from backend.utils.logger import logger
 
+import re
+from typing import Any, Dict, List, Optional
+
+from backend.utils.logger import logger
 
 # ── Query Intent Classification ────────────────────────────────────────────────
 
 _CODING_PATTERNS = re.compile(
-    r'\b(code|function|class|debug|error|bug|implement|algorithm|api|script|'
-    r'python|javascript|typescript|bash|sql|regex|dockerfile|git)\b', re.I
+    r"\b(code|function|class|debug|error|bug|implement|algorithm|api|script|"
+    r"python|javascript|typescript|bash|sql|regex|dockerfile|git)\b",
+    re.I,
 )
 _CREATIVE_PATTERNS = re.compile(
-    r'\b(write|story|poem|essay|creative|generate|draft|describe|imagine|design)\b', re.I
+    r"\b(write|story|poem|essay|creative|generate|draft|describe|imagine|design)\b", re.I
 )
 _FACTUAL_PATTERNS = re.compile(
-    r'\b(what is|who is|when|where|how does|explain|definition|history|'
-    r'meaning|facts? about|tell me about)\b', re.I
+    r"\b(what is|who is|when|where|how does|explain|definition|history|"
+    r"meaning|facts? about|tell me about)\b",
+    re.I,
 )
 _MATH_PATTERNS = re.compile(
-    r'\b(calculate|compute|solve|equation|formula|math|statistics|probability)\b', re.I
+    r"\b(calculate|compute|solve|equation|formula|math|statistics|probability)\b", re.I
 )
 
 # Model capability hints

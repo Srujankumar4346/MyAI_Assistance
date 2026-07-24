@@ -23,26 +23,32 @@ const client = axios.create({
 });
 
 // Request Interceptor to attach JWT token
-client.interceptors.request.use((config) => {
-  const token = getAuthToken();
-  if (token && config.headers) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+client.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token && config.headers) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+);
 
 // Response Interceptor to handle 401 unauthorized errors
-client.interceptors.response.use((response) => {
-  return response;
-}, (error) => {
-  if (error.response && error.response.status === 401 && error.config.url !== '/login') {
-    removeAuthToken();
-    window.location.reload();
+client.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401 && error.config.url !== '/login') {
+      removeAuthToken();
+      window.location.reload();
+    }
+    return Promise.reject(error);
   }
-  return Promise.reject(error);
-});
+);
 
 export const api = {
   login: async (credentials: any) => {
@@ -248,4 +254,3 @@ export const api = {
     return res.data;
   },
 };
-

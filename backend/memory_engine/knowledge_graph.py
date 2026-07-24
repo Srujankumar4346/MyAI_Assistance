@@ -7,37 +7,83 @@ Auto-extracts entities from chat messages using regex + keyword patterns.
 Node types: user, project, language, framework, person, goal, skill, concept, tool, company
 Edge types: uses, works_on, knows, part_of, related_to, employs, created_by, deployed_on
 """
-import uuid
-import json
+
 import re
-from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from backend.database.connection import SessionLocal
-from backend.memory_engine.models import KnowledgeNode, KnowledgeEdge
 from backend.memory_engine.cache import cache
+from backend.memory_engine.models import KnowledgeEdge, KnowledgeNode
 from backend.utils.logger import logger
-
 
 # ── Entity Extraction Patterns ─────────────────────────────────────────────────
 
 # Tech keywords → node_type
 _LANGUAGE_KW = {
-    "python", "javascript", "typescript", "java", "c++", "c#", "go", "rust",
-    "swift", "kotlin", "ruby", "php", "r", "scala", "dart", "sql"
+    "python",
+    "javascript",
+    "typescript",
+    "java",
+    "c++",
+    "c#",
+    "go",
+    "rust",
+    "swift",
+    "kotlin",
+    "ruby",
+    "php",
+    "r",
+    "scala",
+    "dart",
+    "sql",
 }
 _FRAMEWORK_KW = {
-    "react", "vue", "angular", "next.js", "nextjs", "vite", "fastapi", "django",
-    "flask", "express", "spring", "laravel", "rails", "tailwind", "framer motion",
-    "pytorch", "tensorflow", "keras", "langchain", "ollama", "huggingface"
+    "react",
+    "vue",
+    "angular",
+    "next.js",
+    "nextjs",
+    "vite",
+    "fastapi",
+    "django",
+    "flask",
+    "express",
+    "spring",
+    "laravel",
+    "rails",
+    "tailwind",
+    "framer motion",
+    "pytorch",
+    "tensorflow",
+    "keras",
+    "langchain",
+    "ollama",
+    "huggingface",
 }
 _TOOL_KW = {
-    "docker", "kubernetes", "git", "github", "gitlab", "vscode", "postman",
-    "redis", "postgres", "postgresql", "mysql", "mongodb", "chromadb",
-    "aws", "gcp", "azure", "vercel", "render", "heroku", "nginx"
+    "docker",
+    "kubernetes",
+    "git",
+    "github",
+    "gitlab",
+    "vscode",
+    "postman",
+    "redis",
+    "postgres",
+    "postgresql",
+    "mysql",
+    "mongodb",
+    "chromadb",
+    "aws",
+    "gcp",
+    "azure",
+    "vercel",
+    "render",
+    "heroku",
+    "nginx",
 }
 
 # Node type color mapping
@@ -58,7 +104,7 @@ NODE_COLORS = {
 _PROJECT_PATTERNS = [
     r'\b(?:project|app|system|platform|tool|bot|agent|assistant)\s+(?:called|named)?\s*"?([A-Z][A-Za-z0-9_\- ]{2,30})"?',
     r'\bbuilding\s+"?([A-Z][A-Za-z0-9_\- ]{2,30})"?',
-    r'\b([A-Z_]{2,}[A-Z])\b',  # ALL_CAPS identifiers
+    r"\b([A-Z_]{2,}[A-Z])\b",  # ALL_CAPS identifiers
 ]
 
 
@@ -72,17 +118,17 @@ def extract_entities(text: str) -> List[Tuple[str, str]]:
 
     # Programming languages
     for lang in _LANGUAGE_KW:
-        if re.search(r'\b' + re.escape(lang) + r'\b', text_lower):
+        if re.search(r"\b" + re.escape(lang) + r"\b", text_lower):
             entities.append((lang.title(), "language"))
 
     # Frameworks
     for fw in _FRAMEWORK_KW:
-        if re.search(r'\b' + re.escape(fw) + r'\b', text_lower):
+        if re.search(r"\b" + re.escape(fw) + r"\b", text_lower):
             entities.append((fw.title(), "framework"))
 
     # Tools / Platforms
     for tool in _TOOL_KW:
-        if re.search(r'\b' + re.escape(tool) + r'\b', text_lower):
+        if re.search(r"\b" + re.escape(tool) + r"\b", text_lower):
             entities.append((tool.title(), "tool"))
 
     # Project names
@@ -93,7 +139,7 @@ def extract_entities(text: str) -> List[Tuple[str, str]]:
                 entities.append((label, "project"))
 
     # Person names (simple: two capitalized words)
-    for match in re.finditer(r'\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b', text):
+    for match in re.finditer(r"\b([A-Z][a-z]+)\s+([A-Z][a-z]+)\b", text):
         name = match.group(0)
         # Skip if it looks like a title or company
         if name not in {"New Chat", "The User", "The System"}:
@@ -113,14 +159,19 @@ def extract_entities(text: str) -> List[Tuple[str, str]]:
 
 # ── Knowledge Graph Engine ─────────────────────────────────────────────────────
 
+
 class KnowledgeGraphEngine:
 
     def _slug(self, label: str, user_id: int) -> str:
         return f"{user_id}:{label.lower().replace(' ', '_')}"
 
     async def get_or_create_node(
-        self, db: Session, user_id: int, label: str, node_type: str,
-        description: Optional[str] = None
+        self,
+        db: Session,
+        user_id: int,
+        label: str,
+        node_type: str,
+        description: Optional[str] = None,
     ) -> KnowledgeNode:
         node_id = self._slug(label, user_id)
         node = db.query(KnowledgeNode).filter(KnowledgeNode.id == node_id).first()
@@ -142,28 +193,41 @@ class KnowledgeGraphEngine:
         return node
 
     async def add_edge(
-        self, db: Session, user_id: int, source_id: str, target_id: str,
-        relationship: str = "related_to", weight: float = 1.0
+        self,
+        db: Session,
+        user_id: int,
+        source_id: str,
+        target_id: str,
+        relationship: str = "related_to",
+        weight: float = 1.0,
     ) -> bool:
-        existing = db.query(KnowledgeEdge).filter(
-            KnowledgeEdge.source_id == source_id,
-            KnowledgeEdge.target_id == target_id,
-            KnowledgeEdge.relationship == relationship,
-            KnowledgeEdge.user_id == user_id,
-        ).first()
+        existing = (
+            db.query(KnowledgeEdge)
+            .filter(
+                KnowledgeEdge.source_id == source_id,
+                KnowledgeEdge.target_id == target_id,
+                KnowledgeEdge.relationship == relationship,
+                KnowledgeEdge.user_id == user_id,
+            )
+            .first()
+        )
         if not existing:
-            db.add(KnowledgeEdge(
-                user_id=user_id,
-                source_id=source_id,
-                target_id=target_id,
-                relationship=relationship,
-                weight=weight,
-            ))
+            db.add(
+                KnowledgeEdge(
+                    user_id=user_id,
+                    source_id=source_id,
+                    target_id=target_id,
+                    relationship=relationship,
+                    weight=weight,
+                )
+            )
         else:
             existing.weight = min(10.0, existing.weight + 0.1)
         return True
 
-    async def ingest_text(self, text: str, user_id: int, source_node_id: Optional[str] = None) -> int:
+    async def ingest_text(
+        self, text: str, user_id: int, source_node_id: Optional[str] = None
+    ) -> int:
         """
         Auto-extract entities from text, add them to the knowledge graph,
         and link them to a source node (e.g. a project or user node).
@@ -185,7 +249,7 @@ class KnowledgeGraphEngine:
 
             # Link entities to each other when co-occurring in same text
             for i, nid in enumerate(entity_node_ids):
-                for jid in entity_node_ids[i + 1:]:
+                for jid in entity_node_ids[i + 1 :]:
                     await self.add_edge(db, user_id, nid, jid, "related_to", 0.5)
 
             # Link all to source node if provided
@@ -227,10 +291,7 @@ class KnowledgeGraphEngine:
             query_lower = f"%{query.lower()}%"
             nodes = (
                 db.query(KnowledgeNode)
-                .filter(
-                    KnowledgeNode.user_id == user_id,
-                    KnowledgeNode.label.ilike(query_lower)
-                )
+                .filter(KnowledgeNode.user_id == user_id, KnowledgeNode.label.ilike(query_lower))
                 .limit(20)
                 .all()
             )
@@ -241,37 +302,59 @@ class KnowledgeGraphEngine:
     async def get_relationships(self, user_id: int, node_id: str) -> Dict[str, Any]:
         db = SessionLocal()
         try:
-            node = db.query(KnowledgeNode).filter(
-                KnowledgeNode.id == node_id, KnowledgeNode.user_id == user_id
-            ).first()
+            node = (
+                db.query(KnowledgeNode)
+                .filter(KnowledgeNode.id == node_id, KnowledgeNode.user_id == user_id)
+                .first()
+            )
             if not node:
                 return {}
 
-            out_edges = db.query(KnowledgeEdge).filter(
-                KnowledgeEdge.source_id == node_id, KnowledgeEdge.user_id == user_id
-            ).all()
-            in_edges = db.query(KnowledgeEdge).filter(
-                KnowledgeEdge.target_id == node_id, KnowledgeEdge.user_id == user_id
-            ).all()
+            out_edges = (
+                db.query(KnowledgeEdge)
+                .filter(KnowledgeEdge.source_id == node_id, KnowledgeEdge.user_id == user_id)
+                .all()
+            )
+            in_edges = (
+                db.query(KnowledgeEdge)
+                .filter(KnowledgeEdge.target_id == node_id, KnowledgeEdge.user_id == user_id)
+                .all()
+            )
 
-            out_nodes = {e.target_id: db.query(KnowledgeNode).filter(KnowledgeNode.id == e.target_id).first() for e in out_edges}
-            in_nodes = {e.source_id: db.query(KnowledgeNode).filter(KnowledgeNode.id == e.source_id).first() for e in in_edges}
+            out_nodes = {
+                e.target_id: db.query(KnowledgeNode).filter(KnowledgeNode.id == e.target_id).first()
+                for e in out_edges
+            }
+            in_nodes = {
+                e.source_id: db.query(KnowledgeNode).filter(KnowledgeNode.id == e.source_id).first()
+                for e in in_edges
+            }
 
             return {
                 "node": self._serialize_node(node),
                 "outgoing": [
-                    {"relationship": e.relationship, "target": self._serialize_node(out_nodes[e.target_id])}
-                    for e in out_edges if out_nodes.get(e.target_id)
+                    {
+                        "relationship": e.relationship,
+                        "target": self._serialize_node(out_nodes[e.target_id]),
+                    }
+                    for e in out_edges
+                    if out_nodes.get(e.target_id)
                 ],
                 "incoming": [
-                    {"relationship": e.relationship, "source": self._serialize_node(in_nodes[e.source_id])}
-                    for e in in_edges if in_nodes.get(e.source_id)
+                    {
+                        "relationship": e.relationship,
+                        "source": self._serialize_node(in_nodes[e.source_id]),
+                    }
+                    for e in in_edges
+                    if in_nodes.get(e.source_id)
                 ],
             }
         finally:
             db.close()
 
-    async def add_node_manual(self, user_id: int, label: str, node_type: str, description: str = "") -> Dict[str, Any]:
+    async def add_node_manual(
+        self, user_id: int, label: str, node_type: str, description: str = ""
+    ) -> Dict[str, Any]:
         db = SessionLocal()
         try:
             node = await self.get_or_create_node(db, user_id, label, node_type, description)

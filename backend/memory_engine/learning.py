@@ -10,54 +10,63 @@ Continuously learns user preferences from conversation patterns:
 
 Updates LearningProfile incrementally — every chat/voice interaction.
 """
+
 import re
-from typing import List, Dict, Any, Optional
-from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
 from backend.database.connection import SessionLocal
-from backend.memory_engine.models import LearningProfile, LearningEvent
 from backend.memory_engine.cache import cache
+from backend.memory_engine.models import LearningEvent, LearningProfile
 from backend.utils.logger import logger
 
 # ── Entity Detection Patterns ──────────────────────────────────────────────────
 
 _DATE_PATTERN = re.compile(
-    r'\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{1,2}(?:\s*,\s*\d{4})?|tomorrow|next\s+\w+|in\s+\d+\s+days?)\b',
-    re.I
+    r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{1,2}(?:\s*,\s*\d{4})?|tomorrow|next\s+\w+|in\s+\d+\s+days?)\b",
+    re.I,
 )
-_DEADLINE_PATTERN = re.compile(r'\b(deadline|due|submit|interview|exam|assessment|launch|release|presentation)\b', re.I)
+_DEADLINE_PATTERN = re.compile(
+    r"\b(deadline|due|submit|interview|exam|assessment|launch|release|presentation)\b", re.I
+)
 _LANGUAGE_PATTERN = re.compile(
-    r'\b(python|javascript|typescript|java|c\+\+|c#|go|rust|swift|kotlin|ruby|php|scala|dart|sql|html|css)\b', re.I
+    r"\b(python|javascript|typescript|java|c\+\+|c#|go|rust|swift|kotlin|ruby|php|scala|dart|sql|html|css)\b",
+    re.I,
 )
 _FRAMEWORK_PATTERN = re.compile(
-    r'\b(react|vue|angular|next\.?js|vite|fastapi|django|flask|express|spring|pytorch|tensorflow|tailwind|framer)\b', re.I
+    r"\b(react|vue|angular|next\.?js|vite|fastapi|django|flask|express|spring|pytorch|tensorflow|tailwind|framer)\b",
+    re.I,
 )
-_NAME_PATTERN = re.compile(r'\b([A-Z][a-z]{2,}\s+[A-Z][a-z]{2,})\b')
-_PROJECT_PATTERN = re.compile(r'\b(?:project|app|system|platform|tool|bot)\s+(?:named?\s+|called\s+)?"?([A-Z][A-Za-z0-9_\- ]{2,20})"?', re.I)
+_NAME_PATTERN = re.compile(r"\b([A-Z][a-z]{2,}\s+[A-Z][a-z]{2,})\b")
+_PROJECT_PATTERN = re.compile(
+    r'\b(?:project|app|system|platform|tool|bot)\s+(?:named?\s+|called\s+)?"?([A-Z][A-Za-z0-9_\- ]{2,20})"?',
+    re.I,
+)
 
 # ── Language/Style Detection ───────────────────────────────────────────────────
 
 _CODING_STYLE_SIGNALS = {
-    "type hints": r'\btype hints?\b|\btyped\b',
-    "async/await": r'\basync\b|\bawait\b',
-    "functional": r'\bfunctional\b|\blambda\b|\bmap\b|\bfilter\b|\breduce\b',
-    "OOP": r'\bclass\b|\binheritance\b|\bpolymorphism\b|\bencapsulation\b',
-    "TDD": r'\btest.driven\b|\bunit test\b|\bpytest\b|\bjest\b',
+    "type hints": r"\btype hints?\b|\btyped\b",
+    "async/await": r"\basync\b|\bawait\b",
+    "functional": r"\bfunctional\b|\blambda\b|\bmap\b|\bfilter\b|\breduce\b",
+    "OOP": r"\bclass\b|\binheritance\b|\bpolymorphism\b|\bencapsulation\b",
+    "TDD": r"\btest.driven\b|\bunit test\b|\bpytest\b|\bjest\b",
 }
 
 _REPLY_STYLE_SIGNALS = {
-    "detailed": r'\bexplain\b|\bdetail\b|\btell me more\b|\belaborate\b',
-    "concise": r'\bshort\b|\bbrief\b|\bquick\b|\bsimple\b|\btl;?dr\b',
-    "technical": r'\bcode\b|\bimplementation\b|\balgorithm\b|\barchitecture\b',
-    "casual": r'\bhey\b|\bwhat\'?s up\b|\bchill\b|\bcool\b',
+    "detailed": r"\bexplain\b|\bdetail\b|\btell me more\b|\belaborate\b",
+    "concise": r"\bshort\b|\bbrief\b|\bquick\b|\bsimple\b|\btl;?dr\b",
+    "technical": r"\bcode\b|\bimplementation\b|\balgorithm\b|\barchitecture\b",
+    "casual": r"\bhey\b|\bwhat\'?s up\b|\bchill\b|\bcool\b",
 }
 
 
 class LearningEngine:
 
-    async def get_or_create_profile(self, user_id: int, db: Optional[Session] = None) -> LearningProfile:
+    async def get_or_create_profile(
+        self, user_id: int, db: Optional[Session] = None
+    ) -> LearningProfile:
         own_db = db is None
         if own_db:
             db = SessionLocal()
@@ -92,7 +101,9 @@ class LearningEngine:
 
     # ── Profile Update ─────────────────────────────────────────────────────────
 
-    async def update_from_conversation(self, user_id: int, user_text: str, ai_response: str) -> None:
+    async def update_from_conversation(
+        self, user_id: int, user_text: str, ai_response: str
+    ) -> None:
         """
         Incrementally update the LearningProfile based on a single conversation turn.
         Called by the chat controller as a background task.
@@ -109,8 +120,13 @@ class LearningEngine:
                 # First detected language becomes primary if not set
                 if not profile.primary_language:
                     profile.primary_language = primary_candidate
-                    self._log_event(db, user_id, "new_language",
-                                    f"Detected primary language: {primary_candidate}", 0.9)
+                    self._log_event(
+                        db,
+                        user_id,
+                        "new_language",
+                        f"Detected primary language: {primary_candidate}",
+                        0.9,
+                    )
                 else:
                     existing.update(l.strip() for l in langs)
                     profile.secondary_languages = ",".join(sorted(existing))
@@ -124,8 +140,13 @@ class LearningEngine:
                 existing.update(new_fws)
                 profile.preferred_frameworks = ",".join(sorted(existing))
                 if added:
-                    self._log_event(db, user_id, "new_framework",
-                                    f"Detected frameworks: {', '.join(added)}", 0.8)
+                    self._log_event(
+                        db,
+                        user_id,
+                        "new_framework",
+                        f"Detected frameworks: {', '.join(added)}",
+                        0.8,
+                    )
 
             # ── Reply style detection ────────────────────────────────────────
             for style, pattern in _REPLY_STYLE_SIGNALS.items():
@@ -143,7 +164,9 @@ class LearningEngine:
 
             # ── Interaction count ────────────────────────────────────────────
             profile.total_interactions += 1
-            learning_score = min(100.0, profile.total_interactions * 0.5 + len(fws) * 2 + len(langs) * 3)
+            learning_score = min(
+                100.0, profile.total_interactions * 0.5 + len(fws) * 2 + len(langs) * 3
+            )
             profile.learning_score = learning_score
 
             db.commit()
@@ -154,13 +177,17 @@ class LearningEngine:
         finally:
             db.close()
 
-    def _log_event(self, db: Session, user_id: int, event_type: str, description: str, confidence: float) -> None:
-        db.add(LearningEvent(
-            user_id=user_id,
-            event_type=event_type,
-            description=description,
-            confidence=confidence,
-        ))
+    def _log_event(
+        self, db: Session, user_id: int, event_type: str, description: str, confidence: float
+    ) -> None:
+        db.add(
+            LearningEvent(
+                user_id=user_id,
+                event_type=event_type,
+                description=description,
+                confidence=confidence,
+            )
+        )
 
     # ── Profile Retrieval ──────────────────────────────────────────────────────
 
@@ -211,10 +238,17 @@ class LearningEngine:
         try:
             profile = await self.get_or_create_profile(user_id, db)
             allowed = [
-                "primary_language", "secondary_languages", "preferred_frameworks",
-                "preferred_ai_models", "coding_style", "reply_style",
-                "writing_style", "daily_routine", "work_habits",
-                "learning_habits", "frequently_used_commands",
+                "primary_language",
+                "secondary_languages",
+                "preferred_frameworks",
+                "preferred_ai_models",
+                "coding_style",
+                "reply_style",
+                "writing_style",
+                "daily_routine",
+                "work_habits",
+                "learning_habits",
+                "frequently_used_commands",
             ]
             for field in allowed:
                 if field in updates:

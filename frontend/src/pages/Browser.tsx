@@ -14,9 +14,13 @@ export default function BrowserControlCenter() {
       const res = await apiClient.post('/browser/navigate', {
         url: url,
         workspace_name: 'Personal',
-        headed: false
+        headed: false,
       });
-      setStatus(res.status === 'success' ? `Successfully loaded: ${res.result.title}` : `Error: ${res.message || 'Blocked'}`);
+      setStatus(
+        res.status === 'success'
+          ? `Successfully loaded: ${res.result.title}`
+          : `Error: ${res.message || 'Blocked'}`
+      );
     } catch (err: any) {
       setStatus(`Failed: ${err.message}`);
     }
@@ -28,9 +32,13 @@ export default function BrowserControlCenter() {
     try {
       const res = await apiClient.post('/browser/research', {
         query: query,
-        workspace_name: 'Research'
+        workspace_name: 'Research',
       });
-      setStatus(res.status === 'success' ? `Research complete! Report generated.` : `Error: ${res.message || 'Blocked'}`);
+      setStatus(
+        res.status === 'success'
+          ? `Research complete! Report generated.`
+          : `Error: ${res.message || 'Blocked'}`
+      );
     } catch (err: any) {
       setStatus(`Failed: ${err.message}`);
     }
@@ -64,15 +72,18 @@ export default function BrowserControlCenter() {
             URL Navigation
           </h2>
           <form onSubmit={handleNavigate} className="flex gap-2">
-            <input 
+            <input
               type="url"
               value={url}
-              onChange={e => setUrl(e.target.value)}
+              onChange={(e) => setUrl(e.target.value)}
               className="flex-1 bg-slate-900/50 border border-slate-700/50 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
               placeholder="https://..."
               required
             />
-            <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
               Go
             </button>
           </form>
@@ -88,20 +99,24 @@ export default function BrowserControlCenter() {
             AI Research Pipeline
           </h2>
           <form onSubmit={handleResearch} className="flex flex-col gap-3">
-            <input 
+            <input
               type="text"
               value={query}
-              onChange={e => setQuery(e.target.value)}
+              onChange={(e) => setQuery(e.target.value)}
               className="bg-slate-900/50 border border-slate-700/50 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-fuchsia-500"
               placeholder="e.g. FastAPI vs Flask performance 2026"
               required
             />
-            <button type="submit" className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+            <button
+              type="submit"
+              className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+            >
               <Play className="w-4 h-4" /> Start Research
             </button>
           </form>
           <p className="text-slate-500 text-sm mt-4">
-            Triggers the 7-step Research Pipeline: Search ➔ Open ➔ Extract ➔ Summarize ➔ Knowledge Graph.
+            Triggers the 7-step Research Pipeline: Search ➔ Open ➔ Extract ➔ Summarize ➔ Knowledge
+            Graph.
           </p>
         </div>
       </div>

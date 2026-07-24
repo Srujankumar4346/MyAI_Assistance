@@ -29,11 +29,18 @@ class MockDriver(BrowserDriver):
     async def close_tab(self, tab_id: str):
         if tab_id in self.tabs:
             del self.tabs[tab_id]
+
+    async def duplicate_tab(self, tab_id: str):
+        return "mock_duplicated_tab"
+        
+    async def focus_tab(self, tab_id: str):
+        pass
+        
+    async def reload_tab(self, tab_id: str):
+        pass
         
     def get_capabilities(self):
         return ["tabs", "sessions"]
-        
-    async def close_tab(self, tab_id):
         pass
 
 class TestBrowserSessionManager(unittest.IsolatedAsyncioTestCase):

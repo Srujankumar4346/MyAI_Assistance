@@ -3,12 +3,42 @@ import { Cpu, ShieldCheck, Layers, Sparkles, CheckCircle2, Circle } from 'lucide
 
 export const About: React.FC = () => {
   const phases = [
-    { phase: 1, title: 'Foundation & Core AI OS Architecture', status: 'active', desc: 'FastAPI REST backend, SQLite history, ChromaDB vector memory, Ollama inference, glassmorphic UI.' },
-    { phase: 2, title: 'Voice Control & Speech Recognition', status: 'planned', desc: 'Real-time text-to-speech & speech-to-text integration.' },
-    { phase: 3, title: 'Browser Automation & Web Agent', status: 'planned', desc: 'Autonomous web scraping, search synthesis, and web browser control.' },
-    { phase: 4, title: 'Desktop & OS Automation', status: 'planned', desc: 'App launching, filesystem management, and system task execution.' },
-    { phase: 5, title: 'Multi-Agent Collaborative System', status: 'planned', desc: 'Specialized subagents for coding, research, writing, and design.' },
-    { phase: 6, title: 'Android & Mobile Integration', status: 'planned', desc: 'Cross-device notification sync and mobile remote control.' },
+    {
+      phase: 1,
+      title: 'Foundation & Core AI OS Architecture',
+      status: 'active',
+      desc: 'FastAPI REST backend, SQLite history, ChromaDB vector memory, Ollama inference, glassmorphic UI.',
+    },
+    {
+      phase: 2,
+      title: 'Voice Control & Speech Recognition',
+      status: 'planned',
+      desc: 'Real-time text-to-speech & speech-to-text integration.',
+    },
+    {
+      phase: 3,
+      title: 'Browser Automation & Web Agent',
+      status: 'planned',
+      desc: 'Autonomous web scraping, search synthesis, and web browser control.',
+    },
+    {
+      phase: 4,
+      title: 'Desktop & OS Automation',
+      status: 'planned',
+      desc: 'App launching, filesystem management, and system task execution.',
+    },
+    {
+      phase: 5,
+      title: 'Multi-Agent Collaborative System',
+      status: 'planned',
+      desc: 'Specialized subagents for coding, research, writing, and design.',
+    },
+    {
+      phase: 6,
+      title: 'Android & Mobile Integration',
+      status: 'planned',
+      desc: 'Cross-device notification sync and mobile remote control.',
+    },
   ];
 
   return (
@@ -20,13 +50,19 @@ export const About: React.FC = () => {
             <Cpu className="w-10 h-10" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-white">NOVA_X — Neural Operating Virtual Assistance</h1>
-            <p className="text-sm text-cyan-300 font-mono">Personal AI Operating System • Phase 1 Release</p>
+            <h1 className="text-2xl font-extrabold text-white">
+              NOVA_X — Neural Operating Virtual Assistance
+            </h1>
+            <p className="text-sm text-cyan-300 font-mono">
+              Personal AI Operating System • Phase 1 Release
+            </p>
           </div>
         </div>
 
         <p className="text-slate-300 text-sm leading-relaxed max-w-3xl">
-          NOVA_X is a production-grade personal AI assistant OS designed for privacy-first, local-first intelligence. Powered by fast asynchronous microservices, vector memory retention, and flexible local/cloud model orchestration.
+          NOVA_X is a production-grade personal AI assistant OS designed for privacy-first,
+          local-first intelligence. Powered by fast asynchronous microservices, vector memory
+          retention, and flexible local/cloud model orchestration.
         </p>
       </div>
 
@@ -37,10 +73,18 @@ export const About: React.FC = () => {
             <Layers className="w-4 h-4 text-cyan-400" /> Frontend Architecture
           </h3>
           <ul className="space-y-2 text-xs text-slate-300">
-            <li>• <strong>React 19 & TypeScript</strong> for type-safe responsive components</li>
-            <li>• <strong>Tailwind CSS v4 & Glassmorphism</strong> design system</li>
-            <li>• <strong>Framer Motion & Lucide Icons</strong> for sleek micro-interactions</li>
-            <li>• <strong>React Markdown & Syntax Highlighter</strong> for rich message feeds</li>
+            <li>
+              • <strong>React 19 & TypeScript</strong> for type-safe responsive components
+            </li>
+            <li>
+              • <strong>Tailwind CSS v4 & Glassmorphism</strong> design system
+            </li>
+            <li>
+              • <strong>Framer Motion & Lucide Icons</strong> for sleek micro-interactions
+            </li>
+            <li>
+              • <strong>React Markdown & Syntax Highlighter</strong> for rich message feeds
+            </li>
           </ul>
         </div>
 
@@ -49,10 +93,18 @@ export const About: React.FC = () => {
             <ShieldCheck className="w-4 h-4 text-indigo-400" /> Backend Architecture
           </h3>
           <ul className="space-y-2 text-xs text-slate-300">
-            <li>• <strong>FastAPI (Python 3.10)</strong> asynchronous REST API</li>
-            <li>• <strong>ChromaDB Vector DB</strong> for semantic long-term memory retrieval</li>
-            <li>• <strong>Ollama Engine</strong> for local LLM inference (Gemma, Llama 3, Qwen)</li>
-            <li>• <strong>SQLite DB & JWT Auth</strong> for secure session management</li>
+            <li>
+              • <strong>FastAPI (Python 3.10)</strong> asynchronous REST API
+            </li>
+            <li>
+              • <strong>ChromaDB Vector DB</strong> for semantic long-term memory retrieval
+            </li>
+            <li>
+              • <strong>Ollama Engine</strong> for local LLM inference (Gemma, Llama 3, Qwen)
+            </li>
+            <li>
+              • <strong>SQLite DB & JWT Auth</strong> for secure session management
+            </li>
           </ul>
         </div>
       </div>
@@ -82,7 +134,9 @@ export const About: React.FC = () => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm">Phase {p.phase}: {p.title}</span>
+                  <span className="font-bold text-sm">
+                    Phase {p.phase}: {p.title}
+                  </span>
                   {p.status === 'active' && (
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">
                       CURRENT PHASE

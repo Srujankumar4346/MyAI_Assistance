@@ -4,27 +4,28 @@ Phase 3 — Neural Memory Engine Router
 All Phase 3 endpoints under /api/memory/* and /api/knowledge/* and /api/learning/*
 Compatible with existing /api/memory routes (which remain on the old router).
 """
+
 import json
-from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, BackgroundTasks
+from typing import List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from backend.database.connection import get_db
 from backend.database.models import User
-from backend.security.auth import get_current_user
-from backend.memory_engine.neural_memory import neural_memory
+from backend.memory_engine.document_intelligence import document_intelligence
 from backend.memory_engine.knowledge_graph import knowledge_graph
 from backend.memory_engine.learning import learning_engine
-from backend.memory_engine.document_intelligence import document_intelligence
+from backend.memory_engine.neural_memory import neural_memory
+from backend.security.auth import get_current_user
 from backend.utils.logger import logger
 
 router = APIRouter()
 
 
 # ─── Pydantic Schemas ──────────────────────────────────────────────────────────
+
 
 class MemoryStoreInput(BaseModel):
     content: str
@@ -68,6 +69,7 @@ class LearningUpdateInput(BaseModel):
 
 # ─── Memory Endpoints ──────────────────────────────────────────────────────────
 
+
 @router.post("/memory/store")
 async def store_memory(
     payload: MemoryStoreInput,
@@ -85,7 +87,9 @@ async def store_memory(
         expires_in_hours=payload.expires_in_hours,
     )
     if result is None:
-        raise HTTPException(status_code=400, detail="Memory not stored (content too trivial or duplicate)")
+        raise HTTPException(
+            status_code=400, detail="Memory not stored (content too trivial or duplicate)"
+        )
     return result
 
 
@@ -144,6 +148,7 @@ async def get_statistics(current_user: User = Depends(get_current_user)):
 @router.get("/memory/categories")
 async def get_categories(current_user: User = Depends(get_current_user)):
     from backend.memory_engine.models import MEMORY_CATEGORIES, MEMORY_TYPES
+
     return {"categories": MEMORY_CATEGORIES, "types": MEMORY_TYPES}
 
 
@@ -153,7 +158,9 @@ async def update_memory(
     payload: MemoryUpdateInput,
     current_user: User = Depends(get_current_user),
 ):
-    result = await neural_memory.update_memory(memory_id, current_user.id, payload.dict(exclude_none=True))
+    result = await neural_memory.update_memory(
+        memory_id, current_user.id, payload.dict(exclude_none=True)
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Memory not found")
     return result
@@ -206,7 +213,7 @@ async def export_memories(current_user: User = Depends(get_current_user)):
     memories = await neural_memory.export_memories(current_user.id)
     return JSONResponse(
         content={"memories": memories, "exported_at": datetime.utcnow().isoformat()},
-        headers={"Content-Disposition": "attachment; filename=novax_memories.json"}
+        headers={"Content-Disposition": "attachment; filename=novax_memories.json"},
     )
 
 
@@ -233,6 +240,7 @@ async def import_memories(
 
 # ─── Document Intelligence ────────────────────────────────────────────────────
 
+
 @router.post("/memory/document/upload")
 async def upload_document(
     background_tasks: BackgroundTasks,
@@ -257,6 +265,7 @@ async def list_documents(current_user: User = Depends(get_current_user)):
 
 
 # ─── Knowledge Graph ──────────────────────────────────────────────────────────
+
 
 @router.get("/knowledge/graph")
 async def get_knowledge_graph(current_user: User = Depends(get_current_user)):
@@ -293,6 +302,7 @@ async def add_knowledge_node(
 
 
 # ─── Learning / Personality ───────────────────────────────────────────────────
+
 
 @router.get("/learning/profile")
 async def get_learning_profile(current_user: User = Depends(get_current_user)):

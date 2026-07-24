@@ -38,7 +38,7 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
       errorCount: 0,
       healthScore: 100,
       uptime: '00:00:00',
-      avgResponseTime: 0
+      avgResponseTime: 0,
     });
     setIsLoading(false);
   }, []);
@@ -48,9 +48,9 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
     const unsubscribe = subscribe('browser.health', (event: BrowserEvent) => {
       const payload = event.payload;
       if (event.event_type === 'HEALTH_UPDATE' || event.event_type === 'TELEMETRY_EVENT') {
-        setHealth(prev => {
+        setHealth((prev) => {
           const next = { ...prev, ...payload };
-          setHealthHistory(h => [...h, next.healthScore].slice(-20)); // Keep last 20 ticks
+          setHealthHistory((h) => [...h, next.healthScore].slice(-20)); // Keep last 20 ticks
           return next;
         });
       }
@@ -59,7 +59,11 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
   }, [isConnected, subscribe]);
 
   if (isLoading || !health) {
-    return <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">Loading Browser Health...</div>;
+    return (
+      <div className="p-4 bg-gray-900/50 backdrop-blur-md rounded-xl text-gray-400">
+        Loading Browser Health...
+      </div>
+    );
   }
 
   const getHealthColor = (score: number) => {
@@ -69,7 +73,7 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col h-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-5 gap-5"
@@ -81,7 +85,9 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
         </h3>
         <div className="flex items-center gap-3 text-xs font-mono">
           <span className="text-gray-400">Uptime: {health.uptime}</span>
-          <span className={`px-2 py-1 rounded-full ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
+          <span
+            className={`px-2 py-1 rounded-full ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}
+          >
             {isConnected ? 'WS OK' : 'WS OFFLINE'}
           </span>
         </div>
@@ -93,7 +99,9 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
           <div className="flex items-center gap-2 text-gray-400 text-xs uppercase font-bold tracking-wider">
             <Activity className="w-3.5 h-3.5" /> Score
           </div>
-          <span className={`text-2xl font-bold ${getHealthColor(health.healthScore)}`}>{health.healthScore}%</span>
+          <span className={`text-2xl font-bold ${getHealthColor(health.healthScore)}`}>
+            {health.healthScore}%
+          </span>
         </div>
 
         <div className="bg-gray-800/40 p-3 rounded-xl border border-gray-700/50 flex flex-col gap-1">
@@ -109,12 +117,16 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
           </div>
           <span className="text-2xl font-bold text-gray-200">{health.memoryUsage}MB</span>
         </div>
-        
+
         <div className="bg-gray-800/40 p-3 rounded-xl border border-gray-700/50 flex flex-col gap-1">
           <div className="flex items-center gap-2 text-gray-400 text-xs uppercase font-bold tracking-wider">
             <AlertCircle className="w-3.5 h-3.5" /> Errors
           </div>
-          <span className={`text-2xl font-bold ${health.errorCount > 0 ? 'text-red-400' : 'text-gray-200'}`}>{health.errorCount}</span>
+          <span
+            className={`text-2xl font-bold ${health.errorCount > 0 ? 'text-red-400' : 'text-gray-200'}`}
+          >
+            {health.errorCount}
+          </span>
         </div>
       </div>
 
@@ -137,18 +149,22 @@ export const BrowserHealthWidget: React.FC = React.memo(() => {
         </div>
         <div className="flex justify-between border-b border-gray-800/50 pb-1">
           <span className="text-gray-500">Crashes</span>
-          <span className={`font-mono ${health.crashCount > 0 ? 'text-red-400 font-bold' : 'text-gray-300'}`}>{health.crashCount}</span>
+          <span
+            className={`font-mono ${health.crashCount > 0 ? 'text-red-400 font-bold' : 'text-gray-300'}`}
+          >
+            {health.crashCount}
+          </span>
         </div>
         <div className="flex justify-between border-b border-gray-800/50 pb-1">
           <span className="text-gray-500">Avg Resp Time</span>
           <span className="text-gray-300 font-mono">{health.avgResponseTime}ms</span>
         </div>
       </div>
-      
+
       {/* Sparkline visualization of health score */}
       <div className="h-12 w-full mt-auto flex items-end gap-1 opacity-50">
         {healthHistory.map((score, i) => (
-          <motion.div 
+          <motion.div
             key={i}
             initial={{ height: 0 }}
             animate={{ height: `${score}%` }}

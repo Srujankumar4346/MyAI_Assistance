@@ -1,122 +1,42 @@
 # NOVA_X System Architecture
 
-NOVA_X is an advanced Neural Operating Virtual Assistance platform designed to seamlessly integrate Voice, Desktop, and Browser automation through a robust, security-first 7-step execution pipeline.
-
-## 1. Complete System Architecture
-
-NOVA_X is built with modularity and security at its core.
+## High-Level Topology
 
 ```mermaid
 graph TD
-    User([User]) --> VoiceEngine(Voice Engine)
-    User --> UI(Dashboard Frontend)
-    VoiceEngine --> ContextEngine(Context Engine)
-    UI --> ContextEngine
-    ContextEngine --> IntentEngine(Model Router & Intent Recognition)
+    Client[React Dashboard] -->|REST & WebSockets| API[FastAPI Gateway]
+    API --> Security[JWT Auth]
     
-    IntentEngine --> DesktopPipeline(Desktop Automation Engine)
-    IntentEngine --> BrowserPipeline(Browser Automation Engine)
+    API --> BrowserEngine[Browser Engine]
+    API --> DesktopEngine[Desktop Engine]
+    API --> MemoryEngine[Memory Engine]
+    API --> VoiceEngine[Voice Engine]
     
-    DesktopPipeline --> Execution(Execution & Logging)
-    BrowserPipeline --> Execution
+    BrowserEngine --> Playwright[Chromium / Playwright]
+    MemoryEngine --> Postgres[(PostgreSQL)]
+    MemoryEngine --> ChromaDB[(ChromaDB Vector Store)]
     
-    Execution --> MemoryEngine(Neural Memory Engine)
-    MemoryEngine --> KnowledgeGraph(Knowledge Graph)
-    KnowledgeGraph --> LearningEngine(Learning Engine)
-    
-    LearningEngine --> ModelRouter(LLM / Model Router)
-    ModelRouter --> User
+    Playwright --> EventBus[Central EventBus]
+    EventBus --> WebSocketBroadcaster[WebSocket Broadcaster]
+    WebSocketBroadcaster --> Client
 ```
 
-## 2. Folder Structure
+## Backend Architecture
+NOVA_X uses FastAPI for routing, organized into modular engine directories:
+- `backend/browser_engine`: The `BrowserSessionManager` acts as the orchestrator for headless interactions via `PlaywrightDriver`.
+- `backend/desktop_engine`: Exposes OS-level abstractions (mouse, keyboard, terminal) monitored by a `SafetyValidator`.
+- `backend/memory_engine`: Embeds unstructured text into ChromaDB and maps Knowledge Graphs into PostgreSQL.
+- `backend/routers`: Contains isolated REST API layers matching the engines.
 
-```text
-NOVA_X/
-├── backend/
-│   ├── browser_engine/     # Phase 5: Browser automation, Workspaces, Sessions
-│   ├── core/               # App configuration and settings
-│   ├── database/           # SQLite/PostgreSQL models and connection
-│   ├── desktop_engine/     # Phase 4: Permissions, Safety Validator, Macros
-│   ├── memory_engine/      # Phase 3: Neural Memory, Knowledge Graph, Learning
-│   ├── routers/            # API endpoints
-│   ├── security/           # Authentication and auth utilities
-│   └── utils/              # Telemetry, Logger, utilities
-├── frontend/               # Phase 2: React Dashboard UI
-├── docs/                   # Documentation and audit reports
-├── ARCHITECTURE.md         # System Architecture
-├── requirements.txt
-└── README.md
-```
+## Frontend Architecture
+The React Dashboard (powered by Vite and TailwindCSS) is a composition of decoupled widgets. 
+- The `BrowserDashboard.tsx` root orchestrates layout using CSS Grid.
+- State is primarily handled via a central `BrowserWebSocketProvider` delivering low-latency EventBus updates directly into widget states.
 
-## 3. The 7-Step Execution Pipeline
+## Event-Driven Architecture
+All backend operations are decoupled via a Singleton `EventBus`.
+When `BrowserSessionManager` opens a tab, it emits a `TAB_OPENED` event. The `ConnectionManager` running on `/ws/browser` automatically intercepts this bus event, serializes it, and broadcasts it to authenticated WebSocket clients, achieving full reactive telemetry without database polling.
 
-Every actionable intent routed to NOVA_X (whether Browser or Desktop) MUST traverse this pipeline. Bypassing the Safety Validator is strictly forbidden.
-
-```mermaid
-flowchart LR
-    A[Intent Parsed] --> B[Permission Engine]
-    B --> C[Safety Validator]
-    C --> D[Execution]
-    D --> E[Logging]
-    E --> F[Neural Memory]
-    F --> G[Learning Engine]
-```
-
-### Module Responsibilities
-
-#### 3.1 Permission Engine
-Enforces 4-level security:
-- **SAFE**: Automatically allowed (e.g., read public info).
-- **MEDIUM**: Uploads, logins.
-- **HIGH**: Editing account info, system settings.
-- **CRITICAL**: Requires explicit user consent (e.g., payments, account deletion, file execution).
-
-#### 3.2 Safety Validator
-Sanitizes the target. For files, checks extensions. For terminals, scans for malicious flags. For browsers, validates URL protocols to prevent local file scraping (`file://`).
-
-#### 3.3 Neural Memory Engine & Knowledge Graph
-Every action is embedded into ChromaDB (Semantic Memory) and tracked relationally in the Knowledge Graph. It features a Memory Decay algorithm to forget stale data.
-
-#### 3.4 Learning Engine
-Observes the user's habits (e.g., most visited documentation) via local telemetry and reinforces the Knowledge Graph to preemptively optimize workflows.
-
-## 4. Browser Engine Architecture
-
-The Browser Engine operates heavily on **Workspaces** to isolate sessions, history, and cookies (Personal, Work, Research, College, Development).
-
-```mermaid
-classDiagram
-    class BrowserSessionManager {
-        +launch_browser(workspace_id)
-        +close_browser()
-        +get_state()
-        +active_tabs()
-    }
-    class MemoryHooks {
-        +on_page_visited()
-        +on_download()
-        +on_bookmark()
-    }
-    class WorkspaceEngine {
-        +isolate_cookies()
-        +isolate_history()
-    }
-    
-    BrowserSessionManager --> WorkspaceEngine
-    BrowserSessionManager --> MemoryHooks
-```
-
-## 5. Security Model
-
-NOVA_X treats Desktop and Browser spaces as untrusted by default.
-1. **API Layer**: Secured via JWT tokens.
-2. **Action Validation**: Mapped to strict `ActionType` Enums.
-3. **Telemetry**: Stored 100% locally (`telemetry.jsonl`). Never transmitted externally.
-4. **Data Isolation**: Workspaces completely silo browsing data to prevent cross-contamination between contexts (e.g., Work vs Personal).
-
-## 6. Runtime Lifecycle
-
-The platform utilizes FastAPI's event loops integrated with `APScheduler` (running `AsyncIOScheduler` with `MemoryJobStore` for dev) to continuously execute:
-- Memory Decay (`run_memory_decay`)
-- Learning Reinforcement (`run_learning_reinforcement`)
-- Desktop Scheduled Tasks (`run_desktop_scheduler`)
+## Deployment Topology
+NOVA_X relies on Docker Compose using profiles (`core`, `ai`, `full`). 
+The `backend` and `frontend` execute in isolated containers linked by a Docker Bridge Network to `postgres` and optionally `ollama`.

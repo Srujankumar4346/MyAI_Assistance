@@ -16,7 +16,12 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [availableModels, setAvailableModels] = useState<string[]>(['gemma', 'llama3', 'qwen', 'mistral']);
+  const [availableModels, setAvailableModels] = useState<string[]>([
+    'gemma',
+    'llama3',
+    'qwen',
+    'mistral',
+  ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -180,9 +185,11 @@ export const Chat: React.FC<ChatProps> = ({ selectedModel, setSelectedModel }) =
           const updated = [...prev];
           const lastIdx = updated.length - 1;
           if (lastIdx >= 0 && updated[lastIdx].sender === 'assistant') {
-            updated[lastIdx] = { 
-              ...updated[lastIdx], 
-              content: updated[lastIdx].content || `[Error: ${err.message || 'Failed to receive response from NOVA_X engine'}]` 
+            updated[lastIdx] = {
+              ...updated[lastIdx],
+              content:
+                updated[lastIdx].content ||
+                `[Error: ${err.message || 'Failed to receive response from NOVA_X engine'}]`,
             };
           }
           return updated;

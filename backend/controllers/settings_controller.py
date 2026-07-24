@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
-from backend.database.models import User, AppSettings
+
+from backend.database.models import AppSettings, User
 from backend.schemas.schemas import AppSettingsSchema
+
 
 def get_settings_controller(db: Session, current_user: User):
     app_settings = db.query(AppSettings).filter(AppSettings.user_id == current_user.id).first()
@@ -10,6 +12,7 @@ def get_settings_controller(db: Session, current_user: User):
         db.commit()
         db.refresh(app_settings)
     return app_settings
+
 
 def update_settings_controller(payload: AppSettingsSchema, db: Session, current_user: User):
     app_settings = db.query(AppSettings).filter(AppSettings.user_id == current_user.id).first()

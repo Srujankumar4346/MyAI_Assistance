@@ -31,7 +31,10 @@ export const Logs: React.FC = () => {
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Terminal className="w-6 h-6 text-cyan-400" /> NOVA_X Real-Time System Logs
           </h2>
-          <p className="text-xs text-slate-300 mt-1">Viewing log output from <code className="text-cyan-300 font-mono">{file || 'latest log'}</code></p>
+          <p className="text-xs text-slate-300 mt-1">
+            Viewing log output from{' '}
+            <code className="text-cyan-300 font-mono">{file || 'latest log'}</code>
+          </p>
         </div>
         <button
           onClick={fetchLogs}
@@ -56,8 +59,8 @@ export const Logs: React.FC = () => {
                   isError
                     ? 'bg-red-500/10 border border-red-500/20 text-red-300'
                     : isWarn
-                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-300'
-                    : 'hover:bg-slate-900/60'
+                      ? 'bg-amber-500/10 border border-amber-500/20 text-amber-300'
+                      : 'hover:bg-slate-900/60'
                 }`}
               >
                 <span className="text-slate-500 mr-2">[{idx + 1}]</span>

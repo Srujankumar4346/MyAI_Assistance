@@ -10,17 +10,19 @@ Priority chain:
 Embeddings are stored in ChromaDB. When Ollama is offline, the system
 automatically falls back down the priority chain and still functions.
 """
+
 import asyncio
 import math
 import re
-from typing import List, Dict, Optional, Tuple
-from backend.utils.logger import logger
+from typing import Dict, List, Optional, Tuple
 
+from backend.utils.logger import logger
 
 # ── TF-IDF Utilities (always available) ───────────────────────────────────────
 
+
 def _tokenize(text: str) -> List[str]:
-    return re.findall(r'\w+', text.lower())
+    return re.findall(r"\w+", text.lower())
 
 
 def _compute_tf(tokens: List[str]) -> Dict[str, float]:
@@ -34,8 +36,8 @@ def _compute_tf(tokens: List[str]) -> Dict[str, float]:
 def _cosine_sim(v1: Dict[str, float], v2: Dict[str, float]) -> float:
     keys = set(v1) & set(v2)
     num = sum(v1[k] * v2[k] for k in keys)
-    d1 = math.sqrt(sum(x ** 2 for x in v1.values()))
-    d2 = math.sqrt(sum(x ** 2 for x in v2.values()))
+    d1 = math.sqrt(sum(x**2 for x in v1.values()))
+    d2 = math.sqrt(sum(x**2 for x in v2.values()))
     return num / (d1 * d2) if d1 and d2 else 0.0
 
 
@@ -58,6 +60,7 @@ def _get_st_model():
         return _st_model
     try:
         from sentence_transformers import SentenceTransformer
+
         _st_model = SentenceTransformer("all-MiniLM-L6-v2")
         _st_available = True
         logger.info("[Embeddings] SentenceTransformer (all-MiniLM-L6-v2) loaded.")
@@ -81,7 +84,10 @@ async def _check_ollama_embed() -> Optional[str]:
     if _ollama_checked:
         return _active_ollama_model
 
-    import os, httpx
+    import os
+
+    import httpx
+
     base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
@@ -104,15 +110,17 @@ async def _check_ollama_embed() -> Optional[str]:
 
 async def _embed_ollama(texts: List[str], model: str) -> Optional[List[List[float]]]:
     """Get embeddings from Ollama."""
-    import os, httpx
+    import os
+
+    import httpx
+
     base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             results = []
             for text in texts:
                 res = await client.post(
-                    f"{base_url}/api/embeddings",
-                    json={"model": model, "prompt": text}
+                    f"{base_url}/api/embeddings", json={"model": model, "prompt": text}
                 )
                 if res.status_code == 200:
                     results.append(res.json().get("embedding", []))
@@ -125,6 +133,7 @@ async def _embed_ollama(texts: List[str], model: str) -> Optional[List[List[floa
 
 
 # ── Sentence Transformer Embeddings ───────────────────────────────────────────
+
 
 async def _embed_sentence_transformers(texts: List[str]) -> Optional[List[List[float]]]:
     model = _get_st_model()
@@ -140,6 +149,7 @@ async def _embed_sentence_transformers(texts: List[str]) -> Optional[List[List[f
 
 
 # ── Public API ─────────────────────────────────────────────────────────────────
+
 
 class EmbeddingService:
     """
@@ -173,7 +183,9 @@ class EmbeddingService:
         # ── 3. TF-IDF proxy (returns zero vectors — used for ChromaDB storage) ─
         # We store a dummy zero vector so ChromaDB can still store the document.
         # Similarity search will use TF-IDF as fallback.
-        logger.warning("[Embeddings] All embedding providers failed — using zero vectors (TF-IDF search active).")
+        logger.warning(
+            "[Embeddings] All embedding providers failed — using zero vectors (TF-IDF search active)."
+        )
         dim = 384
         vecs = [[0.0] * dim for _ in texts]
         self._provider = "tfidf-fallback"
